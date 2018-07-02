@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">BristolStreetview</string>
+    <string name="take_photo_button">Take a photo!</string>
+</resources>
