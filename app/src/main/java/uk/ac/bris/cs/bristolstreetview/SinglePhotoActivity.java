@@ -2,6 +2,7 @@ package uk.ac.bris.cs.bristolstreetview;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -45,6 +46,7 @@ public class SinglePhotoActivity extends AppCompatActivity {
         for (String permission : permissions) {
             if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
                 Log.e(TAG, permission + " NOT granted");
+//                ActivityCompat.requestPermissions(this, new String[permission], MY_PER);
             } else {
                 Log.v(TAG, permission + " granted");
             }
