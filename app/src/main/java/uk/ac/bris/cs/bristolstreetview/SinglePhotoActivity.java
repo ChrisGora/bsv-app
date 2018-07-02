@@ -58,7 +58,15 @@ public class SinglePhotoActivity extends AppCompatActivity {
 //            sendStringGetRequest();
 //            getCameraInfo();
 //            sendJsonPostRequest();
-            mCameraConnector.getCameraInfo();
+            mCameraConnector.updateCameraInfo();
+//            try {
+//                Thread.sleep(1000);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//            CameraInfo cameraInfo = mCameraConnector.getCameraInfo();
+//            Log.v(TAG, cameraInfo.getFirmwareVersion());
+
         });
     }
 
