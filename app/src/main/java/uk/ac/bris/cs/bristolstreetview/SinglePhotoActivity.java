@@ -10,6 +10,11 @@ import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +24,9 @@ public class SinglePhotoActivity extends AppCompatActivity {
 
     private Button mTakePhotoButton;
     private TextView mResponseTextView;
+
+    private RequestQueue mQueue;
+    private String mUrl;
 
 
     @Override
@@ -33,6 +41,11 @@ public class SinglePhotoActivity extends AppCompatActivity {
         permissions.add(Manifest.permission.INTERNET);
         checkPermissions(permissions);
 
+        mQueue = Volley.newRequestQueue(this);
+        mUrl = "http://192.168.1.1";
+
+        Log.v(TAG, "Queue and URL set!");
+
     }
 
     private void findAllViews() {
@@ -42,7 +55,8 @@ public class SinglePhotoActivity extends AppCompatActivity {
 
     private void setAllOnClickListeners() {
         mTakePhotoButton.setOnClickListener((view) -> {
-            Log.v(TAG, "Button pressed");
+            Log.v(TAG, "Button pressed")
+            ;
         });
     }
 
@@ -57,6 +71,14 @@ public class SinglePhotoActivity extends AppCompatActivity {
         }
     }
 
+
+//    private void sendStringRequest(String request) {
+//        StringRequest stringRequest = new StringRequest(Request.Method.GET, mUrl,
+//                (String response) -> mResponseTextView.setText(response.substring(0, 500)),
+//                (response) -> mResponseTextView.setText("That didn't work :-("));
+//
+//        mQueue.add(stringRequest);
+//    }
 
 
 
