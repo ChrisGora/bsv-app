@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +18,7 @@ public class SinglePhotoActivity extends AppCompatActivity {
     private static final String TAG = "SinglePhotoActivity";
 
     private Button mTakePhotoButton;
+    private TextView mResponseTextView;
 
 
     @Override
@@ -30,10 +32,12 @@ public class SinglePhotoActivity extends AppCompatActivity {
         List<String> permissions = new ArrayList<>();
         permissions.add(Manifest.permission.INTERNET);
         checkPermissions(permissions);
+
     }
 
     private void findAllViews() {
         mTakePhotoButton = findViewById(R.id.take_photo_button);
+        mResponseTextView = findViewById(R.id.response_text_view);
     }
 
     private void setAllOnClickListeners() {
@@ -52,5 +56,8 @@ public class SinglePhotoActivity extends AppCompatActivity {
             }
         }
     }
+
+
+
 
 }
