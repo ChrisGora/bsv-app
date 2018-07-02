@@ -1,9 +1,15 @@
 package uk.ac.bris.cs.bristolstreetview;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class SinglePhotoActivity extends AppCompatActivity {
 
@@ -16,8 +22,13 @@ public class SinglePhotoActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_single_photo);
+
         findAllViews();
         setAllOnClickListeners();
+
+        List<String> permissions = new ArrayList<>();
+        permissions.add(Manifest.permission.INTERNET);
+        checkPermissions(permissions);
     }
 
     private void findAllViews() {
@@ -30,6 +41,14 @@ public class SinglePhotoActivity extends AppCompatActivity {
         });
     }
 
-
+    private void checkPermissions(List<String> permissions) {
+        for (String permission : permissions) {
+            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                Log.e(TAG, permission + " NOT granted");
+            } else {
+                Log.v(TAG, permission + " granted");
+            }
+        }
+    }
 
 }
