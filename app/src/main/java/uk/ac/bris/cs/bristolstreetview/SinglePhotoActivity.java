@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
@@ -56,7 +57,8 @@ public class SinglePhotoActivity extends AppCompatActivity {
     private void setAllOnClickListeners() {
         mTakePhotoButton.setOnClickListener((view) -> {
             Log.v(TAG, "Button pressed");
-            sendStringRequest();
+//            sendStringRequest();
+            sendJsonRequest();
         });
     }
 
@@ -74,13 +76,28 @@ public class SinglePhotoActivity extends AppCompatActivity {
 
     private void sendStringRequest() {
         StringRequest stringRequest = new StringRequest(Request.Method.GET, mUrl + "/osc/info",
-                (String response) -> mResponseTextView.setText(response),
-                (response) -> mResponseTextView.setText("That didn't work :-("));
-
+                (response) -> mResponseTextView.setText(response),
+                (response) -> mResponseTextView.setText("That didn't work :-(")
+        );
         mQueue.add(stringRequest);
     }
 
-//    private void
+    private void sendJsonRequest() {
+        String url = mUrl + "/osc/info";
+        Log.v(TAG, ">>>>>>>>>>>>>>>> HERE");
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null,
+                (response) -> {
+                    mResponseTextView.setText(response.toString());
+                    Log.v(TAG, "Option 1");
+                },
+                (response) -> {
+                    mResponseTextView.setText("Didn't work either");
+                    Log.v(TAG, "Option 2");
+                }
+        );
+        mQueue.add(request);
+    }
+
 
 
 
