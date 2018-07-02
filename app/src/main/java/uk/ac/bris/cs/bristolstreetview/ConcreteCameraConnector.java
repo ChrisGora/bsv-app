@@ -23,7 +23,6 @@ class ConcreteCameraConnector implements CameraConnector {
 
     private String mUrl;
 
-    private CameraInfo mCameraInfo;
 
     ConcreteCameraConnector(RequestQueue queue, String url) {
         mQueue = Objects.requireNonNull(queue);
@@ -41,14 +40,13 @@ class ConcreteCameraConnector implements CameraConnector {
                     mRequestsPending--;
                     Log.v(TAG, "RESPONSE: Requests pending: " + mRequestsPending);
 //                    Log.v(TAG, response.toString());
-                    mCameraInfo = new CameraInfo();
+                    CameraInfo cameraInfo = new CameraInfo();
                     try {
-                        mCameraInfo.setSerialNumber(response.getString("serialNumber"));
-                        mCameraInfo.setFirmwareVersion(response.getString("firmwareVersion"));
-                        mCameraInfo.setGpsPresent(response.getBoolean("gps"));
-                        mCameraInfo.setGyroPresent(response.getBoolean("gyro"));
-                        Log.v(TAG, "HERE!!!");
-                        onCameraInfoUpdatedAll(mCameraInfo);
+                        cameraInfo.setSerialNumber(response.getString("serialNumber"));
+                        cameraInfo.setFirmwareVersion(response.getString("firmwareVersion"));
+                        cameraInfo.setGpsPresent(response.getBoolean("gps"));
+                        cameraInfo.setGyroPresent(response.getBoolean("gyro"));
+                        onCameraInfoUpdatedAll(cameraInfo);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
