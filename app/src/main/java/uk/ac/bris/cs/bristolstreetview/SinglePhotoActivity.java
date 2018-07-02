@@ -28,8 +28,7 @@ public class SinglePhotoActivity extends AppCompatActivity {
     private Button mTakePhotoButton;
     private TextView mResponseTextView;
 
-    private RequestQueue mQueue;
-    private String mUrl;
+    private CameraConnector mCameraConnector;
 
 
     @Override
@@ -44,10 +43,7 @@ public class SinglePhotoActivity extends AppCompatActivity {
         permissions.add(Manifest.permission.INTERNET);
         checkPermissions(permissions);
 
-        mQueue = Volley.newRequestQueue(this);
-        mUrl = "http://192.168.1.1";
-
-        Log.v(TAG, "Queue and URL set!");
+        mCameraConnector = new CameraConnector(Volley.newRequestQueue(this), "http://192.168.1.1");
 
     }
 
@@ -60,8 +56,9 @@ public class SinglePhotoActivity extends AppCompatActivity {
         mTakePhotoButton.setOnClickListener((view) -> {
             Log.v(TAG, "Button pressed");
 //            sendStringGetRequest();
-//            sendJsonGetRequest();
-            sendJsonPostRequest();
+//            getCameraInfo();
+//            sendJsonPostRequest();
+            mCameraConnector.getCameraInfo();
         });
     }
 
@@ -77,21 +74,12 @@ public class SinglePhotoActivity extends AppCompatActivity {
     }
 
 
-    private void sendStringGetRequest() {
+    /*private void sendStringGetRequest() {
         StringRequest stringRequest = new StringRequest(Request.Method.GET, mUrl + "/osc/info",
                 (response) -> mResponseTextView.setText(response),
                 (response) -> mResponseTextView.setText("That didn't work :-(")
         );
         mQueue.add(stringRequest);
-    }
-
-    private void sendJsonGetRequest() {
-        String url = mUrl + "/osc/info";
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null,
-                (response) -> mResponseTextView.setText(response.toString()),
-                (response) -> mResponseTextView.setText("That didn't work :-(")
-        );
-        mQueue.add(request);
     }
 
     private void sendJsonPostRequest() {
@@ -113,7 +101,7 @@ public class SinglePhotoActivity extends AppCompatActivity {
         );
         mQueue.add(request);
     }
-
+*/
 
 
 
