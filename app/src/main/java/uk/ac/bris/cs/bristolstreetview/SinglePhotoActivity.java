@@ -55,8 +55,8 @@ public class SinglePhotoActivity extends AppCompatActivity {
 
     private void setAllOnClickListeners() {
         mTakePhotoButton.setOnClickListener((view) -> {
-            Log.v(TAG, "Button pressed")
-            ;
+            Log.v(TAG, "Button pressed");
+            sendStringRequest();
         });
     }
 
@@ -72,13 +72,15 @@ public class SinglePhotoActivity extends AppCompatActivity {
     }
 
 
-//    private void sendStringRequest(String request) {
-//        StringRequest stringRequest = new StringRequest(Request.Method.GET, mUrl,
-//                (String response) -> mResponseTextView.setText(response.substring(0, 500)),
-//                (response) -> mResponseTextView.setText("That didn't work :-("));
-//
-//        mQueue.add(stringRequest);
-//    }
+    private void sendStringRequest() {
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, mUrl + "/osc/info",
+                (String response) -> mResponseTextView.setText(response),
+                (response) -> mResponseTextView.setText("That didn't work :-("));
+
+        mQueue.add(stringRequest);
+    }
+
+//    private void
 
 
 
