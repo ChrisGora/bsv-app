@@ -2,7 +2,6 @@ package uk.ac.bris.cs.bristolstreetview;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -15,6 +14,9 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,8 +59,9 @@ public class SinglePhotoActivity extends AppCompatActivity {
     private void setAllOnClickListeners() {
         mTakePhotoButton.setOnClickListener((view) -> {
             Log.v(TAG, "Button pressed");
-//            sendStringRequest();
-            sendJsonRequest();
+//            sendStringGetRequest();
+//            sendJsonGetRequest();
+            sendJsonPostRequest();
         });
     }
 
@@ -74,7 +77,7 @@ public class SinglePhotoActivity extends AppCompatActivity {
     }
 
 
-    private void sendStringRequest() {
+    private void sendStringGetRequest() {
         StringRequest stringRequest = new StringRequest(Request.Method.GET, mUrl + "/osc/info",
                 (response) -> mResponseTextView.setText(response),
                 (response) -> mResponseTextView.setText("That didn't work :-(")
@@ -82,21 +85,35 @@ public class SinglePhotoActivity extends AppCompatActivity {
         mQueue.add(stringRequest);
     }
 
-    private void sendJsonRequest() {
+    private void sendJsonGetRequest() {
         String url = mUrl + "/osc/info";
-        Log.v(TAG, ">>>>>>>>>>>>>>>> HERE");
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null,
-                (response) -> {
-                    mResponseTextView.setText(response.toString());
-                    Log.v(TAG, "Option 1");
-                },
-                (response) -> {
-                    mResponseTextView.setText("Didn't work either");
-                    Log.v(TAG, "Option 2");
-                }
+                (response) -> mResponseTextView.setText(response.toString()),
+                (response) -> mResponseTextView.setText("That didn't work :-(")
         );
         mQueue.add(request);
     }
+
+    private void sendJsonPostRequest() {
+        String url = mUrl + "/osc/state";
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, null,
+                (response) -> {
+            mResponseTextView.setText(response.toString());
+                    try {
+                        String fingerprint = response.getString("fingerprint");
+                        JSONObject state = response.getJSONObject("state");
+                        Number batteryLevel = state.getDouble("batteryLevel");
+                        Log.v("TAG", ">>>> " + fingerprint);
+                        Log.v("TAG", ">>>> BATTERY LEVEL: " + batteryLevel);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                },
+                (response) -> mResponseTextView.setText("That didn't work :-(")
+        );
+        mQueue.add(request);
+    }
+
 
 
 
