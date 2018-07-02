@@ -14,7 +14,7 @@ import com.android.volley.toolbox.Volley;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SinglePhotoActivity extends AppCompatActivity {
+public class SinglePhotoActivity extends AppCompatActivity implements CameraConnectorObserver{
 
     private static final String TAG = "SinglePhotoActivity";
 
@@ -37,6 +37,8 @@ public class SinglePhotoActivity extends AppCompatActivity {
         checkPermissions(permissions);
 
         mCameraConnector = new ConcreteCameraConnector(Volley.newRequestQueue(this), "http://192.168.1.1");
+
+        mCameraConnector.registerObserver(this);
 
     }
 
@@ -74,6 +76,20 @@ public class SinglePhotoActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onCameraInfoUpdated(CameraInfo newCameraInfo) {
+        Log.v(TAG, "CALLED ON INFO UPDATED");
+        Log.i(TAG, "Serial Number: " + newCameraInfo.getSerialNumber());
+        Log.i(TAG, "Firmware Version: " + newCameraInfo.getFirmwareVersion());
+        Log.i(TAG, "GPS Present? : " + newCameraInfo.getGpsPresent());
+        Log.i(TAG, "Gyro Present? : " + newCameraInfo.getGyroPresent());
+
+    }
+
+    @Override
+    public void onCameraStateUpdated(CameraState newCameraState) {
+
+    }
 
     /*private void sendStringGetRequest() {
         StringRequest stringRequest = new StringRequest(Request.Method.GET, mUrl + "/osc/info",

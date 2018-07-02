@@ -8,9 +8,15 @@ import com.android.volley.toolbox.JsonObjectRequest;
 
 import org.json.JSONException;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
 class ConcreteCameraConnector implements CameraConnector {
 
     private static final String TAG = "CameraConnector";
+
+    private List<CameraConnectorObserver> mObservers;
 
     private RequestQueue mQueue;
     private int mRequestsPending;
@@ -20,9 +26,10 @@ class ConcreteCameraConnector implements CameraConnector {
     private CameraInfo mCameraInfo;
 
     ConcreteCameraConnector(RequestQueue queue, String url) {
-        mQueue = queue;
-        mUrl = url;
+        mQueue = Objects.requireNonNull(queue);
+        mUrl = Objects.requireNonNull(url);
         mRequestsPending = 0;
+        mObservers = new ArrayList<>();
         Log.v(TAG, "Queue and URL set!");
     }
 
@@ -33,13 +40,15 @@ class ConcreteCameraConnector implements CameraConnector {
                 (response) -> {
                     mRequestsPending--;
                     Log.v(TAG, "RESPONSE: Requests pending: " + mRequestsPending);
-                    Log.v(TAG, response.toString());
+//                    Log.v(TAG, response.toString());
                     mCameraInfo = new CameraInfo();
                     try {
                         mCameraInfo.setSerialNumber(response.getString("serialNumber"));
                         mCameraInfo.setFirmwareVersion(response.getString("firmwareVersion"));
                         mCameraInfo.setGpsPresent(response.getBoolean("gps"));
                         mCameraInfo.setGyroPresent(response.getBoolean("gyro"));
+                        Log.v(TAG, "HERE!!!");
+                        onCameraInfoUpdatedAll(mCameraInfo);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -55,7 +64,38 @@ class ConcreteCameraConnector implements CameraConnector {
         Log.v(TAG, "QUEUED: Requests pending: " + mRequestsPending);
     }
 
-//    public CameraInfo getCameraInfo() {
+    @Override
+    public void updateCameraState() {
+
+    }
+
+    @Override
+    public void registerObserver(CameraConnectorObserver observer) {
+        if (mObservers.contains(observer))
+            throw new IllegalArgumentException("The observer to be registered has already been refistered");
+        else mObservers.add(Objects.requireNonNull(observer, "Observer to register was null"));
+    }
+
+    @Override
+    public void removeObserver(CameraConnectorObserver observer) {
+        if (mObservers.contains(Objects.requireNonNull(observer, "Observer to deregister was null")))
+            mObservers.remove(observer);
+        else throw new IllegalArgumentException("The observer to be deregistered isn't already registered");
+    }
+
+    private void onCameraInfoUpdatedAll (CameraInfo newCameraInfo) {
+        for (CameraConnectorObserver observer : mObservers) {
+            observer.onCameraInfoUpdated(newCameraInfo);
+        }
+    }
+
+    private void onCameraStateUpdatedAll (CameraState newCameraState) {
+        for (CameraConnectorObserver observer : mObservers) {
+            observer.onCameraStateUpdated(newCameraState);
+        }
+    }
+
+    //    public CameraInfo getCameraInfo() {
 //        new Thread()
 //        while (mRequestsPending > 0) {
 //            try {
