@@ -9,14 +9,7 @@ import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +36,7 @@ public class SinglePhotoActivity extends AppCompatActivity {
         permissions.add(Manifest.permission.INTERNET);
         checkPermissions(permissions);
 
-        mCameraConnector = new CameraConnector(Volley.newRequestQueue(this), "http://192.168.1.1");
+        mCameraConnector = new ConcreteCameraConnector(Volley.newRequestQueue(this), "http://192.168.1.1");
 
     }
 
