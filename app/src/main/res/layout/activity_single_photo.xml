@@ -40,6 +40,18 @@
             android:layout_height="wrap_content"
             android:text="@string/update_state_button"/>
 
+        <Button
+            android:id="@+id/mute_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/mute_button"/>
+
+        <Button
+            android:id="@+id/full_volume_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/full_volume_button"/>
+
         <TextView
             android:id="@+id/response_text_view"
             android:layout_width="wrap_content"

@@ -21,6 +21,8 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
     private Button mTakePhotoButton;
     private Button mUpdateInfoButton;
     private Button mUpdateStateButton;
+    private Button mMuteButton;
+    private Button mFullVolumeButton;
     private TextView mResponseTextView;
 
     private CameraConnector mCameraConnector;
@@ -48,6 +50,9 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
         mTakePhotoButton = findViewById(R.id.take_photo_button);
         mUpdateInfoButton = findViewById(R.id.update_info_button);
         mUpdateStateButton = findViewById(R.id.update_state_button);
+        mMuteButton = findViewById(R.id.mute_button);
+        mFullVolumeButton = findViewById(R.id.full_volume_button);
+
         mResponseTextView = findViewById(R.id.response_text_view);
     }
 
@@ -65,6 +70,16 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
         mUpdateStateButton.setOnClickListener((view) -> {
             Log.v(TAG, "Update state pressed");
             mCameraConnector.updateCameraState();
+        });
+
+        mMuteButton.setOnClickListener((view) -> {
+            Log.v(TAG, "Mute pressed");
+            mCameraConnector.setShutterVolume(0);
+        });
+
+        mFullVolumeButton.setOnClickListener((view) -> {
+            Log.v(TAG, "Full volume pressed");
+            mCameraConnector.setShutterVolume(100);
         });
     }
 

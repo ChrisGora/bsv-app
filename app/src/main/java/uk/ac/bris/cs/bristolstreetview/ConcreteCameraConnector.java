@@ -111,6 +111,7 @@ class ConcreteCameraConnector implements CameraConnector {
         takePhotoCommand.setName("camera.takePicture");
         String takePhotoJsonCommand = mGson.toJson(takePhotoCommand);
 
+        Log.d(TAG, "takePhoto: takePhotoJsonCommand: " + takePhotoJsonCommand);
 
         String url = mUrl + "/osc/commands/execute";
         JsonObjectRequest request = null;
@@ -124,6 +125,35 @@ class ConcreteCameraConnector implements CameraConnector {
                     });
         } catch (JSONException e) {
             Log.e(TAG, "takePhoto: JSON fucked up", e);
+        }
+
+        mQueue.add(Objects.requireNonNull(request));
+    }
+
+    @Override
+    public void setShutterVolume(int volume) {
+        Command setVolumeCommand = new Command();
+        setVolumeCommand.setParameters(new Parameters());
+        setVolumeCommand.getParameters().setOptions(new Options());
+        setVolumeCommand.getParameters().getOptions().set_shutterVolume(volume);
+
+        setVolumeCommand.setName("camera.setOptions");
+        String setVolumeJsonCommand = mGson.toJson(setVolumeCommand);
+
+        Log.d(TAG, "setShutterVolume: setVolumeJsonCommand: " + setVolumeJsonCommand);
+
+        String url = mUrl + "/osc/commands/execute";
+        JsonObjectRequest request = null;
+        try {
+            request = new JsonObjectRequest(Request.Method.POST, url, new JSONObject(setVolumeJsonCommand),
+                    (response) -> {
+                        Log.d(TAG, "setShutterVolume: " + response.toString());
+                    },
+                    (error) -> {
+                        Log.e(TAG, "setShutterVolume: FUCKED UP");
+                    });
+        } catch (JSONException e) {
+            Log.e(TAG, "setShutterVolume: JSON fucked up", e);
         }
 
         mQueue.add(Objects.requireNonNull(request));

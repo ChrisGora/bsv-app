@@ -3,4 +3,6 @@
     <string name="take_photo_button">Take a photo!</string>
     <string name="update_info_button">Update Info</string>
     <string name="update_state_button">Update State</string>
+    <string name="mute_button">Mute</string>
+    <string name="full_volume_button">Full Volume!</string>
 </resources>
