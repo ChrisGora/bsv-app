@@ -4,5 +4,5 @@ public interface CameraConnectorObserver {
 
     void onCameraInfoUpdated(CameraInfo newCameraInfo);
     void onCameraStateUpdated(CameraState newCameraState);
-
+//    void onPhotoTaken();
 }

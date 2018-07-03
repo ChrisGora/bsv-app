@@ -19,6 +19,8 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
     private static final String TAG = "SinglePhotoActivity";
 
     private Button mTakePhotoButton;
+    private Button mUpdateInfoButton;
+    private Button mUpdateStateButton;
     private TextView mResponseTextView;
 
     private CameraConnector mCameraConnector;
@@ -44,14 +46,25 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
 
     private void findAllViews() {
         mTakePhotoButton = findViewById(R.id.take_photo_button);
+        mUpdateInfoButton = findViewById(R.id.update_info_button);
+        mUpdateStateButton = findViewById(R.id.update_state_button);
         mResponseTextView = findViewById(R.id.response_text_view);
     }
 
     private void setAllOnClickListeners() {
         mTakePhotoButton.setOnClickListener((view) -> {
-            Log.v(TAG, "Button pressed");
+            Log.v(TAG, "Take photo pressed");
+            mCameraConnector.takePhoto();
+        });
+
+        mUpdateInfoButton.setOnClickListener((view) -> {
+            Log.v(TAG, "Update info pressed");
             mCameraConnector.updateCameraInfo();
-//            mCameraConnector.updateCameraState();
+        });
+
+        mUpdateStateButton.setOnClickListener((view) -> {
+            Log.v(TAG, "Update state pressed");
+            mCameraConnector.updateCameraState();
         });
     }
 
@@ -79,7 +92,9 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
 
     @Override
     public void onCameraStateUpdated(CameraState newCameraState) {
-
+        Log.i(TAG, "fingerprint: " + newCameraState.getFingerprint());
+        Log.i(TAG, "session ID: " + newCameraState.getState().getSessionId());
+        Log.i(TAG, "battery level: " + newCameraState.getState().getBatteryLevel());
     }
 
     /*private void sendStringGetRequest() {

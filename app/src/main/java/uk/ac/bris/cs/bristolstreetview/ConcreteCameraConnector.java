@@ -10,6 +10,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,14 +79,14 @@ class ConcreteCameraConnector implements CameraConnector {
                     CameraInfo cameraInfo = mGson.fromJson(response.toString(), CameraInfo.class);
                     onCameraInfoUpdatedAll(cameraInfo);
                 },
-                (response) -> {
+                (error) -> {
                     mRequestsPending--;
                     Log.v(TAG, "RESPONSE: Requests pending: " + mRequestsPending);
                     Log.e(TAG, "That didn't work :-(");
                 }
         );
         mRequestsPending++;
-        mQueue.add(request);
+        mQueue.add(Objects.requireNonNull(request));
         Log.v(TAG, "QUEUED: Requests pending: " + mRequestsPending);
     }
 
@@ -95,11 +96,37 @@ class ConcreteCameraConnector implements CameraConnector {
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, null,
                 (response) -> {
                     Log.d(TAG, "updateCameraState: " + response.toString());
+                    CameraState cameraState = mGson.fromJson(response.toString(), CameraState.class);
+                    onCameraStateUpdatedAll(cameraState);
                 },
-                (response) -> {
+                (error) -> {
                     Log.e(TAG, "updateCameraState: FUCKED UP");
                 });
-        mQueue.add(request);
+        mQueue.add(Objects.requireNonNull(request));
+    }
+
+    @Override
+    public void takePhoto() {
+        Command takePhotoCommand = new Command();
+        takePhotoCommand.setName("camera.takePicture");
+        String takePhotoJsonCommand = mGson.toJson(takePhotoCommand);
+
+
+        String url = mUrl + "/osc/commands/execute";
+        JsonObjectRequest request = null;
+        try {
+            request = new JsonObjectRequest(Request.Method.POST, url, new JSONObject(takePhotoJsonCommand),
+                    (response) -> {
+                        Log.d(TAG, "takePhoto: " + response.toString());
+                    },
+                    (error) -> {
+                        Log.e(TAG, "takePhoto: FUCKED UP");
+                    });
+        } catch (JSONException e) {
+            Log.e(TAG, "takePhoto: JSON fucked up", e);
+        }
+
+        mQueue.add(Objects.requireNonNull(request));
     }
 
     @Override

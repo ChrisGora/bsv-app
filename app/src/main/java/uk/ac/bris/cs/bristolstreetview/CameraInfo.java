@@ -1,5 +1,7 @@
 package uk.ac.bris.cs.bristolstreetview;
 
+// TODO: 03/07/18 Get rid of all the setters
+
 public class CameraInfo {
     private String serialNumber;
     private String firmwareVersion;
