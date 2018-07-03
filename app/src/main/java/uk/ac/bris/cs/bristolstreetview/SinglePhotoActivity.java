@@ -59,7 +59,7 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
     private void setAllOnClickListeners() {
         mTakePhotoButton.setOnClickListener((view) -> {
             Log.v(TAG, "Take photo pressed");
-            mCameraConnector.takePhoto();
+            mCameraConnector.sendTakePhotoRequest();
         });
 
         mUpdateInfoButton.setOnClickListener((view) -> {
@@ -110,6 +110,21 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
         Log.i(TAG, "fingerprint: " + newCameraState.getFingerprint());
         Log.i(TAG, "session ID: " + newCameraState.getState().getSessionId());
         Log.i(TAG, "battery level: " + newCameraState.getState().getBatteryLevel());
+    }
+
+    @Override
+    public void onTakePhotoError(CameraOutput output) {
+
+    }
+
+    @Override
+    public void onTakePhotoInProgress(CameraOutput output) {
+
+    }
+
+    @Override
+    public void onTakePhotoDone(CameraOutput output) {
+
     }
 
     /*private void sendStringGetRequest() {

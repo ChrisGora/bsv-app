@@ -1,8 +1,9 @@
 package uk.ac.bris.cs.bristolstreetview;
 
-public class Command {
+public class CameraCommand {
 
     private String name;
+    private String id;
     private Parameters parameters;
 
     public String getName() {
@@ -22,6 +23,7 @@ public class Command {
     }
 }
 
+
 class Parameters {
 
     private Options options;
@@ -34,6 +36,7 @@ class Parameters {
         this.options = options;
     }
 }
+
 
 class Options {
 

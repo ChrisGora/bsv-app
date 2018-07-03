@@ -106,25 +106,25 @@ class ConcreteCameraConnector implements CameraConnector {
     }
 
     @Override
-    public void takePhoto() {
-        Command takePhotoCommand = new Command();
+    public void sendTakePhotoRequest() {
+        CameraCommand takePhotoCommand = new CameraCommand();
         takePhotoCommand.setName("camera.takePicture");
         String takePhotoJsonCommand = mGson.toJson(takePhotoCommand);
 
-        Log.d(TAG, "takePhoto: takePhotoJsonCommand: " + takePhotoJsonCommand);
+        Log.d(TAG, "sendTakePhotoRequest: takePhotoJsonCommand: " + takePhotoJsonCommand);
 
         String url = mUrl + "/osc/commands/execute";
         JsonObjectRequest request = null;
         try {
             request = new JsonObjectRequest(Request.Method.POST, url, new JSONObject(takePhotoJsonCommand),
                     (response) -> {
-                        Log.d(TAG, "takePhoto: " + response.toString());
+                        Log.d(TAG, "sendTakePhotoRequest: " + response.toString());
                     },
                     (error) -> {
-                        Log.e(TAG, "takePhoto: FUCKED UP");
+                        Log.e(TAG, "sendTakePhotoRequest: FUCKED UP");
                     });
         } catch (JSONException e) {
-            Log.e(TAG, "takePhoto: JSON fucked up", e);
+            Log.e(TAG, "sendTakePhotoRequest: JSON fucked up", e);
         }
 
         mQueue.add(Objects.requireNonNull(request));
@@ -132,7 +132,7 @@ class ConcreteCameraConnector implements CameraConnector {
 
     @Override
     public void setShutterVolume(int volume) {
-        Command setVolumeCommand = new Command();
+        CameraCommand setVolumeCommand = new CameraCommand();
         setVolumeCommand.setParameters(new Parameters());
         setVolumeCommand.getParameters().setOptions(new Options());
         setVolumeCommand.getParameters().getOptions().set_shutterVolume(volume);

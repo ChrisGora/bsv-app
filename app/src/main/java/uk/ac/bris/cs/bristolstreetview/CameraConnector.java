@@ -8,6 +8,6 @@ interface CameraConnector {
     void updateCameraInfo();
     void updateCameraState();
     void setShutterVolume(int volume);
-    void takePhoto();
+    void sendTakePhotoRequest();
 
 }
