@@ -53,7 +53,8 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
 //            sendStringGetRequest();
 //            getCameraInfo();
 //            sendJsonPostRequest();
-            mCameraConnector.updateCameraInfo();
+//            mCameraConnector.updateCameraInfo();
+            mCameraConnector.updateCameraState();
 //            try {
 //                Thread.sleep(1000);
 //            } catch (InterruptedException e) {

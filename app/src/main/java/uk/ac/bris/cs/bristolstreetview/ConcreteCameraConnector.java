@@ -64,7 +64,15 @@ class ConcreteCameraConnector implements CameraConnector {
 
     @Override
     public void updateCameraState() {
-
+        String url = mUrl + "/osc/state";
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, null,
+                (response) -> {
+                    Log.d(TAG, "updateCameraState: " + response.toString());
+                },
+                (response) -> {
+                    Log.e(TAG, "updateCameraState: FUCKED UP");
+                });
+        mQueue.add(request);
     }
 
     @Override
