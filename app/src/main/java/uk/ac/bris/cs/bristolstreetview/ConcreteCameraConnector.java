@@ -6,6 +6,9 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import org.json.JSONException;
 
 import java.util.ArrayList;
@@ -18,6 +21,7 @@ class ConcreteCameraConnector implements CameraConnector {
 
     private List<CameraConnectorObserver> mObservers;
 
+    private Gson mGson;
     private RequestQueue mQueue;
     private int mRequestsPending;
 
@@ -25,14 +29,16 @@ class ConcreteCameraConnector implements CameraConnector {
 
 
     ConcreteCameraConnector(RequestQueue queue, String url) {
-        mQueue = Objects.requireNonNull(queue);
-        mUrl = Objects.requireNonNull(url);
-        mRequestsPending = 0;
         mObservers = new ArrayList<>();
+        GsonBuilder builder = new GsonBuilder();
+        mGson = builder.create();
+        mQueue = Objects.requireNonNull(queue);
+        mRequestsPending = 0;
+        mUrl = Objects.requireNonNull(url);
         Log.v(TAG, "Queue and URL set!");
     }
 
-    @Override
+/*    @Override
     public void updateCameraInfo() {
         String url = mUrl + "/osc/info";
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null,
@@ -50,6 +56,27 @@ class ConcreteCameraConnector implements CameraConnector {
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
+                },
+                (response) -> {
+                    mRequestsPending--;
+                    Log.v(TAG, "RESPONSE: Requests pending: " + mRequestsPending);
+                    Log.e(TAG, "That didn't work :-(");
+                }
+        );
+        mRequestsPending++;
+        mQueue.add(request);
+        Log.v(TAG, "QUEUED: Requests pending: " + mRequestsPending);
+    }*/
+
+    @Override
+    public void updateCameraInfo() {  //GSON VERSION
+        String url = mUrl + "/osc/info";
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null,
+                (response) -> {
+                    mRequestsPending--;
+                    Log.v(TAG, "RESPONSE: Requests pending: " + mRequestsPending);
+                    CameraInfo cameraInfo = mGson.fromJson(response.toString(), CameraInfo.class);
+                    onCameraInfoUpdatedAll(cameraInfo);
                 },
                 (response) -> {
                     mRequestsPending--;
@@ -78,7 +105,7 @@ class ConcreteCameraConnector implements CameraConnector {
     @Override
     public void registerObserver(CameraConnectorObserver observer) {
         if (mObservers.contains(observer))
-            throw new IllegalArgumentException("The observer to be registered has already been refistered");
+            throw new IllegalArgumentException("The observer to be registered has already been registered");
         else mObservers.add(Objects.requireNonNull(observer, "Observer to register was null"));
     }
 

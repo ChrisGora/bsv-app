@@ -1,43 +1,52 @@
 package uk.ac.bris.cs.bristolstreetview;
 
 public class CameraInfo {
-    private String mSerialNumber;
-    private String mFirmwareVersion;
-    private Boolean mIsGpsPresent;
-    private Boolean mIsGyroPresent;
+    private String serialNumber;
+    private String firmwareVersion;
+    private String model;
+    private Boolean gps;
+    private Boolean gyro;
 
     public CameraInfo() {
     }
 
     public String getSerialNumber() {
-        return mSerialNumber;
+        return serialNumber;
     }
 
     public void setSerialNumber(String serialNumber) {
-        mSerialNumber = serialNumber;
+        this.serialNumber = serialNumber;
     }
 
     public String getFirmwareVersion() {
-        return mFirmwareVersion;
+        return firmwareVersion;
     }
 
     public void setFirmwareVersion(String firmwareVersion) {
-        mFirmwareVersion = firmwareVersion;
+        this.firmwareVersion = firmwareVersion;
     }
 
     public Boolean getGpsPresent() {
-        return mIsGpsPresent;
+        return gps;
     }
 
     public void setGpsPresent(Boolean gpsPresent) {
-        mIsGpsPresent = gpsPresent;
+        gps = gpsPresent;
     }
 
     public Boolean getGyroPresent() {
-        return mIsGyroPresent;
+        return gyro;
     }
 
     public void setGyroPresent(Boolean gyroPresent) {
-        mIsGyroPresent = gyroPresent;
+        gyro = gyroPresent;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public void setModel(String model) {
+        this.model = model;
     }
 }

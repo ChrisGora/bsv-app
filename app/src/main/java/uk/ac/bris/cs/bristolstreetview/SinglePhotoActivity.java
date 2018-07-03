@@ -50,19 +50,8 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
     private void setAllOnClickListeners() {
         mTakePhotoButton.setOnClickListener((view) -> {
             Log.v(TAG, "Button pressed");
-//            sendStringGetRequest();
-//            getCameraInfo();
-//            sendJsonPostRequest();
-//            mCameraConnector.updateCameraInfo();
-            mCameraConnector.updateCameraState();
-//            try {
-//                Thread.sleep(1000);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//            CameraInfo cameraInfo = mCameraConnector.getCameraInfo();
-//            Log.v(TAG, cameraInfo.getFirmwareVersion());
-
+            mCameraConnector.updateCameraInfo();
+//            mCameraConnector.updateCameraState();
         });
     }
 
@@ -84,6 +73,7 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
         Log.i(TAG, "Firmware Version: " + newCameraInfo.getFirmwareVersion());
         Log.i(TAG, "GPS Present? : " + newCameraInfo.getGpsPresent());
         Log.i(TAG, "Gyro Present? : " + newCameraInfo.getGyroPresent());
+        Log.i(TAG, "Model: " + newCameraInfo.getModel());
 
     }
 
