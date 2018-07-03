@@ -119,6 +119,8 @@ class ConcreteCameraConnector implements CameraConnector {
             request = new JsonObjectRequest(Request.Method.POST, url, new JSONObject(takePhotoJsonCommand),
                     (response) -> {
                         Log.d(TAG, "sendTakePhotoRequest: " + response.toString());
+                        CameraOutput cameraOutput = mGson.fromJson(response.toString(), CameraOutput.class);
+                        onTakePhotoInProgressAll(cameraOutput);
                     },
                     (error) -> {
                         Log.e(TAG, "sendTakePhotoRequest: FUCKED UP");
@@ -182,6 +184,24 @@ class ConcreteCameraConnector implements CameraConnector {
     private void onCameraStateUpdatedAll (CameraState newCameraState) {
         for (CameraConnectorObserver observer : mObservers) {
             observer.onCameraStateUpdated(newCameraState);
+        }
+    }
+
+    private void onTakePhotoInProgressAll(CameraOutput output) {
+        for (CameraConnectorObserver observer : mObservers) {
+            observer.onTakePhotoInProgress(output);
+        }
+    }
+
+    private void onTakePhotoErrorAll(CameraOutput output) {
+        for (CameraConnectorObserver observer : mObservers) {
+            observer.onTakePhotoError(output);
+        }
+    }
+
+    private void onTakePhotoDoneAll(CameraOutput output) {
+        for (CameraConnectorObserver observer : mObservers) {
+            observer.onTakePhotoDone(output);
         }
     }
 
