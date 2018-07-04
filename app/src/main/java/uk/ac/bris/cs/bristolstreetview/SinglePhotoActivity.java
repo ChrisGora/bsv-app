@@ -147,9 +147,17 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
 
     @Override
     public void onTakePhotoDone(CameraOutput output) {
-        Log.i(TAG, "onTakePhotoDone: " + output.getResults().getFileUrl());
-        displayImage(output.getResults().getFileUrl());
-        downloadImage(output.getResults().getFileUrl(), output.getId());
+        String url = output.getResults().getFileUrl();
+        Log.i(TAG, "onTakePhotoDone: " + url);
+        displayImage(url);
+//        downloadImage(output.getResults().getFileUrl(), output.getId());
+        mCameraConnector.getPhotoAsBytes(url);
+    }
+
+    @Override
+    public void onPhotoAsBytesDownloaded(byte[] photo) {
+        Log.i(TAG, "onPhotoAsBytesDownloaded: Something worked!");
+        saveBytesAsImage(photo);
     }
 
     private void displayImage(String url) {
@@ -158,6 +166,10 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
                 .load(url)
                 .resize(500, 500)
                 .into(mResponseImageView);
+    }
+
+    private void saveBytesAsImage(byte[] bytes) {
+
     }
 
 /*
