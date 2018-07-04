@@ -84,20 +84,14 @@ class ConcreteCameraConnector implements CameraConnector {
         String url = mUrl + "/osc/info";
         JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null,
                 (response) -> {
-                    mRequestsPending--;
-                    Log.v(TAG, "RESPONSE: Requests pending: " + mRequestsPending);
                     CameraInfo cameraInfo = mGson.fromJson(response.toString(), CameraInfo.class);
                     onCameraInfoUpdatedAll(cameraInfo);
                 },
                 (error) -> {
-                    mRequestsPending--;
-                    Log.v(TAG, "RESPONSE: Requests pending: " + mRequestsPending);
                     Log.e(TAG, "That didn't work :-(");
                 }
         );
-        mRequestsPending++;
         mQueue.add(Objects.requireNonNull(request));
-        Log.v(TAG, "QUEUED: Requests pending: " + mRequestsPending);
     }
 
     @Override
@@ -206,7 +200,7 @@ class ConcreteCameraConnector implements CameraConnector {
             else executor.shutdownNow();
         },
                 0,
-                200,
+                400,
                 TimeUnit.MILLISECONDS
         );
     }

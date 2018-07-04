@@ -1,7 +1,14 @@
 package uk.ac.bris.cs.bristolstreetview;
 
 import android.Manifest;
+import android.app.DownloadManager;
+import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.os.Environment;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -12,7 +19,11 @@ import android.widget.TextView;
 
 import com.android.volley.toolbox.Volley;
 import com.squareup.picasso.Picasso;
+import com.squareup.picasso.Target;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,6 +39,7 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
     private ImageView mResponseImageView;
 
     private CameraConnector mCameraConnector;
+    private DownloadManager mDownloadManager;
 
 
     @Override
@@ -40,9 +52,13 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
 
         List<String> permissions = new ArrayList<>();
         permissions.add(Manifest.permission.INTERNET);
+        permissions.add((Manifest.permission.READ_EXTERNAL_STORAGE));
+        permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
         checkPermissions(permissions);
+//        checkPermissions(permissions);
 
         mCameraConnector = new ConcreteCameraConnector(Volley.newRequestQueue(this), "http://192.168.1.1");
+        mDownloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
 
         mCameraConnector.registerObserver(this);
 
@@ -89,7 +105,7 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
         for (String permission : permissions) {
             if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
                 Log.e(TAG, permission + " NOT granted");
-//                ActivityCompat.requestPermissions(this, new String[permission], MY_PER);
+                ActivityCompat.requestPermissions(this, new String[] {permission}, 0);
             } else {
                 Log.v(TAG, permission + " granted");
             }
@@ -132,11 +148,38 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
     @Override
     public void onTakePhotoDone(CameraOutput output) {
         Log.i(TAG, "onTakePhotoDone: " + output.getResults().getFileUrl());
+        displayImage(output.getResults().getFileUrl());
+        downloadImage(output.getResults().getFileUrl(), output.getId());
+    }
+
+    private void displayImage(String url) {
         Picasso
                 .get()
-                .load(output.getResults().getFileUrl())
+                .load(url)
                 .resize(500, 500)
                 .into(mResponseImageView);
+    }
+
+/*
+    private void downloadImage(String url, String id) {
+        Log.d(TAG, "downloadImage: url " + url);
+        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
+        Log.d(TAG, "downloadImage: uri " + Uri.parse(url));
+        request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI);
+//        request.setTitle("Downloading photo");
+//        request.setDescription("Bristol StreetView is downloading an image...");
+//        request.setVisibleInDownloadsUi(true);
+//        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DCIM, "photo.jpg");
+        long refid = mDownloadManager.enqueue(request);
+    }
+*/
+
+    private void downloadImage(String url, String id) {
+        Target target = new ImageDownloaderTarget(url);
+        Picasso
+                .get()
+                .load(url)
+                .into(target);
     }
 
     /*private void sendStringGetRequest() {
