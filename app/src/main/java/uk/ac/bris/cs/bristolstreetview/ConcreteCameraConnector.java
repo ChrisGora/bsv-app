@@ -13,8 +13,14 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 class ConcreteCameraConnector implements CameraConnector {
 
@@ -28,6 +34,7 @@ class ConcreteCameraConnector implements CameraConnector {
 
     private String mUrl;
 
+    private Map<String, String> mJobStatusMap;
 
     ConcreteCameraConnector(RequestQueue queue, String url) {
         mObservers = new ArrayList<>();
@@ -36,6 +43,9 @@ class ConcreteCameraConnector implements CameraConnector {
         mQueue = Objects.requireNonNull(queue);
         mRequestsPending = 0;
         mUrl = Objects.requireNonNull(url);
+
+        mJobStatusMap = new HashMap<>();
+
         Log.v(TAG, "Queue and URL set!");
     }
 
@@ -120,16 +130,85 @@ class ConcreteCameraConnector implements CameraConnector {
                     (response) -> {
                         Log.d(TAG, "sendTakePhotoRequest: " + response.toString());
                         CameraOutput cameraOutput = mGson.fromJson(response.toString(), CameraOutput.class);
-                        onTakePhotoInProgressAll(cameraOutput);
+                         updateJobStatusMap(cameraOutput);
+                         if (cameraOutput.getState().equals("inProgress")) {
+                             onTakePhotoInProgressAll(cameraOutput);
+                             setStatusListener(cameraOutput.getId());
+                         } else {
+                             throw new AssertionError("Photo taking not in progress");
+                         }
                     },
                     (error) -> {
-                        Log.e(TAG, "sendTakePhotoRequest: FUCKED UP");
+                        Log.e(TAG, "sendTakePhotoRequest: FUCKED UP", error);
                     });
         } catch (JSONException e) {
             Log.e(TAG, "sendTakePhotoRequest: JSON fucked up", e);
         }
 
         mQueue.add(Objects.requireNonNull(request));
+    }
+
+    private void checkStatus(String id) {
+
+        Log.d(TAG, "checkStatus: >>>>>>>>>>>>>>>>>>>>>>>>> HERE");
+
+        CameraCommand checkStatusCommand = new CameraCommand();
+        checkStatusCommand.setId(id);
+        String checkStatusJsonCommand = mGson.toJson(checkStatusCommand);
+
+        Log.d(TAG, "checkStatus: checkStatusJsonCommand: " + checkStatusJsonCommand);
+
+        String url = mUrl + "/osc/commands/status";
+        JsonObjectRequest request = null;
+        try {
+            request = new JsonObjectRequest(Request.Method.POST, url, new JSONObject(checkStatusJsonCommand),
+                    (response) -> {
+                        Log.d(TAG, "checkStatus: " + response.toString());
+                        CameraOutput cameraOutput = mGson.fromJson(response.toString(), CameraOutput.class);
+                        String state = cameraOutput.getState();
+                        Log.d(TAG, "checkStatus: GET STATE SAYS: " + state);
+                        switch (state) {
+                            case "done":            {
+                                Log.d(TAG, "checkStatus: DONE");
+                                onTakePhotoDoneAll(cameraOutput);
+                                updateJobStatusMap(id, state);
+                                break;
+                            }
+                            case "inProgress":      {
+                                Log.d(TAG, "checkStatus: PROGRESS");
+                                onTakePhotoInProgressAll(cameraOutput);
+                                updateJobStatusMap(cameraOutput);
+                                break;
+                            }
+                            case "error":           {
+                                Log.d(TAG, "checkStatus: ERROR");
+                                updateJobStatusMap(id, state);
+                                break;
+                            }
+                        }
+
+                    },
+                    (error) -> {
+                        Log.e(TAG, "checkStatus: FUCKED UP");
+                    });
+        } catch (JSONException e) {
+            Log.e(TAG, "checkStatus: JSON fucked up", e);
+        }
+
+        mQueue.add(Objects.requireNonNull(request));
+    }
+
+    private void setStatusListener(String id) {
+        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+
+        executor.scheduleAtFixedRate(() -> {
+            if (mJobStatusMap.get(id).equals("inProgress")) checkStatus(id);
+            else executor.shutdownNow();
+        },
+                0,
+                200,
+                TimeUnit.MILLISECONDS
+        );
     }
 
     @Override
@@ -150,6 +229,7 @@ class ConcreteCameraConnector implements CameraConnector {
             request = new JsonObjectRequest(Request.Method.POST, url, new JSONObject(setVolumeJsonCommand),
                     (response) -> {
                         Log.d(TAG, "setShutterVolume: " + response.toString());
+//                        updateJobStatusMap(mGson.fromJson(response.toString(), CameraOutput.class));
                     },
                     (error) -> {
                         Log.e(TAG, "setShutterVolume: FUCKED UP");
@@ -159,6 +239,17 @@ class ConcreteCameraConnector implements CameraConnector {
         }
 
         mQueue.add(Objects.requireNonNull(request));
+    }
+
+    private void updateJobStatusMap(CameraOutput output) {
+        updateJobStatusMap(
+                Objects.requireNonNull(output.getId(), "UpdateStatus: ID was null"),
+                Objects.requireNonNull(output.getState(), "UpdateStatus: State was null")
+        );
+    }
+
+    private void updateJobStatusMap(String id, String status) {
+        mJobStatusMap.put(id, status);
     }
 
     @Override

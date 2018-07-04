@@ -7,9 +7,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.android.volley.toolbox.Volley;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +25,7 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
     private Button mUpdateStateButton;
     private Button mMuteButton;
     private Button mFullVolumeButton;
-    private TextView mResponseTextView;
+    private ImageView mResponseImageView;
 
     private CameraConnector mCameraConnector;
 
@@ -53,7 +55,7 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
         mMuteButton = findViewById(R.id.mute_button);
         mFullVolumeButton = findViewById(R.id.full_volume_button);
 
-        mResponseTextView = findViewById(R.id.response_text_view);
+        mResponseImageView = findViewById(R.id.response_image_view);
     }
 
     private void setAllOnClickListeners() {
@@ -123,12 +125,18 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
 
     @Override
     public void onTakePhotoError(CameraOutput output) {
-        Log.e(TAG, "onTakePhotoError: " + output);
+//        Log.e(TAG, "onTakePhotoError: " + output.getError().getCode());
+//        Log.e(TAG, "onTakePhotoError: " + output.getError().getMessage());
     }
 
     @Override
     public void onTakePhotoDone(CameraOutput output) {
-        Log.i(TAG, "onTakePhotoDone: " + output);
+        Log.i(TAG, "onTakePhotoDone: " + output.getResults().getFileUrl());
+        Picasso
+                .get()
+                .load(output.getResults().getFileUrl())
+                .resize(500, 500)
+                .into(mResponseImageView);
     }
 
     /*private void sendStringGetRequest() {

@@ -7,4 +7,5 @@ public interface CameraConnectorObserver {
     void onTakePhotoInProgress(CameraOutput output);
     void onTakePhotoError(CameraOutput output);
     void onTakePhotoDone(CameraOutput output);
+//    void onPhotoDownloaded
 }

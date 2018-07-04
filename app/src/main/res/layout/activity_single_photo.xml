@@ -52,8 +52,8 @@
             android:layout_height="wrap_content"
             android:text="@string/full_volume_button"/>
 
-        <TextView
-            android:id="@+id/response_text_view"
+        <ImageView
+            android:id="@+id/response_image_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="24dp"
