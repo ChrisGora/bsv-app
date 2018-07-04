@@ -7,5 +7,5 @@ public interface CameraConnectorObserver {
     void onTakePhotoInProgress(CameraOutput output);
     void onTakePhotoError(CameraOutput output);
     void onTakePhotoDone(CameraOutput output);
-    void onPhotoAsBytesDownloaded(String content, byte[] photo);
+    void onPhotoAsBytesDownloaded(byte[] photo);
 }

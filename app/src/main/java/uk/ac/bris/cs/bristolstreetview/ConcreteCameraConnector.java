@@ -241,10 +241,13 @@ class ConcreteCameraConnector implements CameraConnector {
 //        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null,
         InputStreamVolleyRequest request = new InputStreamVolleyRequest(Request.Method.GET, url,
                 (response) -> {
-                    Log.d(TAG, "getPhotoAsBytes: test");
-//                    onPhotoAsBytesDownloadedAll(response);
+                    Log.d(TAG, "getPhotoAsBytes: bytes are " + response);
+                    onPhotoAsBytesDownloadedAll(response);
 //                    String s = request.responseHeaders.get();
                 },
+//                (content) -> {
+//                    Log.d(TAG, "getPhotoAsBytes: Content says: " + content);
+//                },
                 (error) -> Log.e(TAG, "getPhotoAsBytes: test"),
                 null);
         mQueue.add(Objects.requireNonNull(request));
@@ -305,9 +308,9 @@ class ConcreteCameraConnector implements CameraConnector {
         }
     }
 
-    private void onPhotoAsBytesDownloadedAll(String content, byte[] photo) {
+    private void onPhotoAsBytesDownloadedAll(byte[] photo) {
         for (CameraConnectorObserver observer : mObservers) {
-            observer.onPhotoAsBytesDownloaded(content, photo);
+            observer.onPhotoAsBytesDownloaded(photo);
         }
     }
 

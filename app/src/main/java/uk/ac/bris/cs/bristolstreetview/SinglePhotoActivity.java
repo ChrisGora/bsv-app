@@ -21,9 +21,13 @@ import com.android.volley.toolbox.Volley;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -155,7 +159,7 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
     }
 
     @Override
-    public void onPhotoAsBytesDownloaded(String content, byte[] photo) {
+    public void onPhotoAsBytesDownloaded(byte[] photo) {
         Log.i(TAG, "onPhotoAsBytesDownloaded: Something worked!");
         saveBytesAsImage(photo);
     }
@@ -169,7 +173,35 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
     }
 
     private void saveBytesAsImage(byte[] bytes) {
-//        String content = bytes.responseHeaders.get
+        Log.d(TAG, "saveBytesAsImage: HERE");
+        String filename = "my_name.jpg";
+        long lengthOfFile = bytes.length;
+        try {
+            InputStream input = new ByteArrayInputStream(bytes);
+            File path = Environment.getExternalStorageDirectory();
+            File file = new File(path, filename);
+            Log.d(TAG, "saveBytesAsImage: path " + path);
+            Log.d(TAG, "saveBytesAsImage: filename " + filename);
+            BufferedOutputStream output = null;
+            output = new BufferedOutputStream(new FileOutputStream(file));
+            byte data[] = new byte[1024];
+
+            long total = 0;
+
+            int count = input.read(data);
+            while (count != -1) {
+                total = total + count;
+                output.write(data, 0, count);
+                count = input.read(data);
+            }
+
+            output.flush();
+            output.close();
+            input.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
 /*
