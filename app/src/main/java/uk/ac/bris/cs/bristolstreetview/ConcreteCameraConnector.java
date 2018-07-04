@@ -242,7 +242,8 @@ class ConcreteCameraConnector implements CameraConnector {
         InputStreamVolleyRequest request = new InputStreamVolleyRequest(Request.Method.GET, url,
                 (response) -> {
                     Log.d(TAG, "getPhotoAsBytes: test");
-                    onPhotoAsBytesDownloadedAll(response);
+//                    onPhotoAsBytesDownloadedAll(response);
+//                    String s = request.responseHeaders.get();
                 },
                 (error) -> Log.e(TAG, "getPhotoAsBytes: test"),
                 null);
@@ -304,9 +305,9 @@ class ConcreteCameraConnector implements CameraConnector {
         }
     }
 
-    private void onPhotoAsBytesDownloadedAll(byte[] photo) {
+    private void onPhotoAsBytesDownloadedAll(String content, byte[] photo) {
         for (CameraConnectorObserver observer : mObservers) {
-            observer.onPhotoAsBytesDownloaded(photo);
+            observer.onPhotoAsBytesDownloaded(content, photo);
         }
     }
 

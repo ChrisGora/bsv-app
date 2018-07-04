@@ -155,7 +155,7 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
     }
 
     @Override
-    public void onPhotoAsBytesDownloaded(byte[] photo) {
+    public void onPhotoAsBytesDownloaded(String content, byte[] photo) {
         Log.i(TAG, "onPhotoAsBytesDownloaded: Something worked!");
         saveBytesAsImage(photo);
     }
@@ -169,7 +169,7 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
     }
 
     private void saveBytesAsImage(byte[] bytes) {
-
+//        String content = bytes.responseHeaders.get
     }
 
 /*
