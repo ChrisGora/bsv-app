@@ -28,6 +28,8 @@ public class MainActivity extends AppCompatActivity {
         mManualButton.setOnClickListener((view) -> {
             startActivity(new Intent(MainActivity.this, SinglePhotoActivity.class));
         });
+        mAutoButton.setOnClickListener((view) -> {
+            startActivity(new Intent(MainActivity.this, AutomaticPhotoActivity.class));
+        });
     }
-
 }

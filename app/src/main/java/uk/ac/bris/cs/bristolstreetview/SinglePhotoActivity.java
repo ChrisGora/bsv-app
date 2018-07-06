@@ -4,11 +4,7 @@ import android.Manifest;
 import android.app.DownloadManager;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.Environment;
-import android.support.annotation.NonNull;
 import android.support.annotation.VisibleForTesting;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -17,7 +13,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.adobe.xmp.XMPException;
 import com.adobe.xmp.XMPIterator;
@@ -29,7 +24,6 @@ import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.Tag;
-import com.drew.metadata.xmp.XmpDescriptor;
 import com.drew.metadata.xmp.XmpDirectory;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
@@ -37,13 +31,11 @@ import com.squareup.picasso.Target;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.DateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -178,7 +170,7 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
         Log.i(TAG, "onTakePhotoDone: " + url);
         displayImage(url);
 //        downloadImage(output.getResults().getFileUrl(), output.getId());
-        mCameraConnector.getPhotoAsBytes(url);
+        mCameraConnector.requestPhotoAsBytes(url);
     }
 
     @Override

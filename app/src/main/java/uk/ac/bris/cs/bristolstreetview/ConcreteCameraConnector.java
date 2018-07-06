@@ -199,8 +199,8 @@ class ConcreteCameraConnector implements CameraConnector {
             if (mJobStatusMap.get(id).equals("inProgress")) checkStatus(id);
             else executor.shutdownNow();
         },
-                0,
-                400,
+                100,
+                1000,
                 TimeUnit.MILLISECONDS
         );
     }
@@ -236,13 +236,13 @@ class ConcreteCameraConnector implements CameraConnector {
     }
 
     @Override
-    public void getPhotoAsBytes(String url) {
+    public void requestPhotoAsBytes(String url) {
         InputStreamVolleyRequest request = new InputStreamVolleyRequest(Request.Method.GET, url,
                 (response) -> {
-                    Log.d(TAG, "getPhotoAsBytes: bytes are " + response);
+                    Log.d(TAG, "requestPhotoAsBytes: bytes are " + response);
                     onPhotoAsBytesDownloadedAll(response);
                 },
-                (error) -> Log.e(TAG, "getPhotoAsBytes: test"),
+                (error) -> Log.e(TAG, "requestPhotoAsBytes: test"),
                 null);
         mQueue.add(Objects.requireNonNull(request));
     }
@@ -307,20 +307,4 @@ class ConcreteCameraConnector implements CameraConnector {
             observer.onPhotoAsBytesDownloaded(photo);
         }
     }
-
-    //    public CameraInfo getCameraInfo() {
-//        new Thread()
-//        while (mRequestsPending > 0) {
-//            try {
-//                Thread.sleep(500);
-//                Log.v(TAG, "Sleeping... ");
-//                Log.v(TAG, "Requests pending: " + mRequestsPending);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//        }
-
-//        return mCameraInfo;
-//    }
-
 }
