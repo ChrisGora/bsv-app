@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name">BristolStreetview</string>
+    <string name="manual_mode">Manual mode</string>
+    <string name="automatic_mode">Automatic mode</string>
     <string name="take_photo_button">Take a photo!</string>
     <string name="update_info_button">Update Info</string>
     <string name="update_state_button">Update State</string>

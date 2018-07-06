@@ -264,7 +264,6 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
                     Log.i(TAG, "saveBytesAsImage: XMP: " + info.getPath() + " " + info.getValue());
                 }
             }
-
         }
     }
 
