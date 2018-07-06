@@ -237,17 +237,11 @@ class ConcreteCameraConnector implements CameraConnector {
 
     @Override
     public void getPhotoAsBytes(String url) {
-//        String url = mUrl + "/osc/info";
-//        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null,
         InputStreamVolleyRequest request = new InputStreamVolleyRequest(Request.Method.GET, url,
                 (response) -> {
                     Log.d(TAG, "getPhotoAsBytes: bytes are " + response);
                     onPhotoAsBytesDownloadedAll(response);
-//                    String s = request.responseHeaders.get();
                 },
-//                (content) -> {
-//                    Log.d(TAG, "getPhotoAsBytes: Content says: " + content);
-//                },
                 (error) -> Log.e(TAG, "getPhotoAsBytes: test"),
                 null);
         mQueue.add(Objects.requireNonNull(request));

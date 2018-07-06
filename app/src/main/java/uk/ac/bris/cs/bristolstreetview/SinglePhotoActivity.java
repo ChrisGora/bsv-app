@@ -20,6 +20,11 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.android.volley.toolbox.Volley;
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.imaging.ImageProcessingException;
+import com.drew.metadata.Directory;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.Tag;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
@@ -189,27 +194,51 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
         long lengthOfFile = bytes.length;
         try {
             InputStream input = new ByteArrayInputStream(bytes);
-            File path = Environment.getExternalStorageDirectory();
-            File file = new File(path, filename);
-            Log.d(TAG, "saveBytesAsImage: path " + path);
-            Log.d(TAG, "saveBytesAsImage: filename " + filename);
-            BufferedOutputStream output = null;
-            output = new BufferedOutputStream(new FileOutputStream(file));
-            byte data[] = new byte[1024];
+//            File path = ;
+            File path = new File(Environment.getExternalStorageDirectory().toString() + File.separator + "Ricoh");
+            boolean done = path.exists() || path.mkdirs();
 
-            long total = 0;
+            if (done) {
+                File file = new File(path, filename);
+                Log.d(TAG, "saveBytesAsImage: path " + path);
+                Log.d(TAG, "saveBytesAsImage: filename " + filename);
+                BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream(file));
+                byte data[] = new byte[1024];
 
-            int count = input.read(data);
-            while (count != -1) {
-                total = total + count;
-                output.write(data, 0, count);
-                count = input.read(data);
+                long total = 0;
+
+                int count = input.read(data);
+                while (count != -1) {
+                    total = total + count;
+                    output.write(data, 0, count);
+                    count = input.read(data);
+                }
+
+                Metadata metadata = ImageMetadataReader.readMetadata(file);
+
+                for (Directory directory : metadata.getDirectories()) {
+                    for (Tag tag : directory.getTags()) {
+                        Log.i(TAG, "saveBytesAsImage: " + directory.getName() + " " + tag.getTagName() + " " + tag.getDescription());
+                    }
+
+                    if (directory.hasErrors()) {
+                        for (String error : directory.getErrors()) {
+                            Log.e(TAG, "saveBytesAsImage: Metadata error: " + error);
+                        }
+                    }
+
+                }
+
+
+                output.flush();
+                output.close();
+                input.close();
+            } else {
+                Log.e(TAG, "saveBytesAsImage: FAILED TO CREATE A DIRECTORY");
             }
-
-            output.flush();
-            output.close();
-            input.close();
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ImageProcessingException e) {
             e.printStackTrace();
         }
 
@@ -218,8 +247,9 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
     @VisibleForTesting
     String getFilename() {
         String date = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.LONG).format(new Date());
-        Log.d(TAG, "getFilename: DATE: " + date);
         String filename = mCameraInfo.getSerialNumber() + " " + date.replace(":", "-");
+        filename = filename + ".jpg";
+        Log.d(TAG, "getFilename: DATE: " + date);
         Log.d(TAG, "getFilename: FILENAME: " + filename);
         return filename;
     }
