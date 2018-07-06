@@ -19,12 +19,18 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.adobe.xmp.XMPException;
+import com.adobe.xmp.XMPIterator;
+import com.adobe.xmp.XMPMeta;
+import com.adobe.xmp.properties.XMPPropertyInfo;
 import com.android.volley.toolbox.Volley;
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.Tag;
+import com.drew.metadata.xmp.XmpDescriptor;
+import com.drew.metadata.xmp.XmpDirectory;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
@@ -40,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 //import javax.inject.Inject;
 
 public class SinglePhotoActivity extends AppCompatActivity implements CameraConnectorObserver{
@@ -199,49 +206,66 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
             boolean done = path.exists() || path.mkdirs();
 
             if (done) {
-                File file = new File(path, filename);
-                Log.d(TAG, "saveBytesAsImage: path " + path);
-                Log.d(TAG, "saveBytesAsImage: filename " + filename);
-                BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream(file));
-                byte data[] = new byte[1024];
-
-                long total = 0;
-
-                int count = input.read(data);
-                while (count != -1) {
-                    total = total + count;
-                    output.write(data, 0, count);
-                    count = input.read(data);
-                }
-
-                Metadata metadata = ImageMetadataReader.readMetadata(file);
-
-                for (Directory directory : metadata.getDirectories()) {
-                    for (Tag tag : directory.getTags()) {
-                        Log.i(TAG, "saveBytesAsImage: " + directory.getName() + " " + tag.getTagName() + " " + tag.getDescription());
-                    }
-
-                    if (directory.hasErrors()) {
-                        for (String error : directory.getErrors()) {
-                            Log.e(TAG, "saveBytesAsImage: Metadata error: " + error);
-                        }
-                    }
-
-                }
-
-
-                output.flush();
-                output.close();
+                processInputStream(input, filename, path);
                 input.close();
             } else {
                 Log.e(TAG, "saveBytesAsImage: FAILED TO CREATE A DIRECTORY");
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ImageProcessingException e) {
+        } catch (IOException | ImageProcessingException | XMPException e) {
             e.printStackTrace();
         }
 
+    }
+
+    private void processInputStream(InputStream input, String filename, File path) throws IOException, ImageProcessingException, XMPException {
+        File file = new File(path, filename);
+        Log.d(TAG, "saveBytesAsImage: path " + path);
+        Log.d(TAG, "saveBytesAsImage: filename " + filename);
+        BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream(file));
+        byte data[] = new byte[1024];
+
+        long total = 0;
+
+        int count = input.read(data);
+        while (count != -1) {
+            total = total + count;
+            output.write(data, 0, count);
+            count = input.read(data);
+        }
+
+        readImageMetadata(file);
+
+        output.flush();
+        output.close();
+    }
+
+    private void readImageMetadata(File file) throws ImageProcessingException, IOException, XMPException {
+        Metadata metadata = ImageMetadataReader.readMetadata(file);
+
+        for (Directory directory : metadata.getDirectories()) {
+            for (Tag tag : directory.getTags()) {
+                Log.i(TAG, "saveBytesAsImage: " + directory.getName() + " " + tag.getTagName() + " " + tag.getDescription());
+            }
+
+            if (directory.hasErrors()) {
+                for (String error : directory.getErrors()) {
+                    Log.e(TAG, "saveBytesAsImage: Metadata error: " + error);
+                }
+            }
+
+            if (directory.getName().equals("XMP")) {
+                Log.i(TAG, "saveBytesAsImage: XMP DETECTED");
+                XmpDirectory xmpDirectory = (XmpDirectory) directory;
+                XMPMeta xmpMeta = xmpDirectory.getXMPMeta();
+                XMPIterator iterator = xmpMeta.iterator();
+                while (iterator.hasNext()) {
+                    XMPPropertyInfo info = (XMPPropertyInfo) iterator.next();
+                    Objects.requireNonNull(info);
+                    Log.i(TAG, "saveBytesAsImage: XMP: " + info.getPath() + " " + info.getValue());
+                }
+            }
+
+        }
     }
 
     @VisibleForTesting
