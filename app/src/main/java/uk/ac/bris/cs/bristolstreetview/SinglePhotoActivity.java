@@ -8,6 +8,8 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Environment;
+import android.support.annotation.NonNull;
+import android.support.annotation.VisibleForTesting;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -28,8 +30,12 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+//import javax.inject.Inject;
 
 public class SinglePhotoActivity extends AppCompatActivity implements CameraConnectorObserver{
 
@@ -45,6 +51,8 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
     private CameraConnector mCameraConnector;
     private DownloadManager mDownloadManager;
 
+//    @Inject
+    private CameraInfo mCameraInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +73,8 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
         mDownloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
 
         mCameraConnector.registerObserver(this);
+
+        mCameraConnector.updateCameraInfo();
 
     }
 
@@ -118,13 +128,14 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
 
     @Override
     public void onCameraInfoUpdated(CameraInfo newCameraInfo) {
+        mCameraInfo = newCameraInfo;
+
         Log.v(TAG, "CALLED ON INFO UPDATED");
         Log.i(TAG, "Serial Number: " + newCameraInfo.getSerialNumber());
         Log.i(TAG, "Firmware Version: " + newCameraInfo.getFirmwareVersion());
         Log.i(TAG, "GPS Present? : " + newCameraInfo.getGpsPresent());
         Log.i(TAG, "Gyro Present? : " + newCameraInfo.getGyroPresent());
         Log.i(TAG, "Model: " + newCameraInfo.getModel());
-
     }
 
     @Override
@@ -174,7 +185,7 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
 
     private void saveBytesAsImage(byte[] bytes) {
         Log.d(TAG, "saveBytesAsImage: HERE");
-        String filename = "my_name.jpg";
+        String filename = getFilename();
         long lengthOfFile = bytes.length;
         try {
             InputStream input = new ByteArrayInputStream(bytes);
@@ -202,6 +213,15 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
             e.printStackTrace();
         }
 
+    }
+
+    @VisibleForTesting
+    String getFilename() {
+        String date = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.LONG).format(new Date());
+        Log.d(TAG, "getFilename: DATE: " + date);
+        String filename = mCameraInfo.getSerialNumber() + " " + date.replace(":", "-");
+        Log.d(TAG, "getFilename: FILENAME: " + filename);
+        return filename;
     }
 
 /*
