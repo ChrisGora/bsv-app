@@ -16,49 +16,87 @@
         app:layout_constraintTop_toTopOf="parent" />
 -->
 
-    <LinearLayout
+    <android.support.constraint.ConstraintLayout
+        android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:gravity="center"
-        android:orientation="vertical">
+        android:gravity="center">
 
         <Button
             android:id="@+id/take_photo_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/take_photo_button"/>
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:text="@string/take_photo_button"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <Button
             android:id="@+id/update_info_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/update_info_button"/>
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:text="@string/update_info_button"
+            app:layout_constraintEnd_toEndOf="@+id/take_photo_button"
+            app:layout_constraintStart_toStartOf="@+id/take_photo_button"
+            app:layout_constraintTop_toBottomOf="@+id/take_photo_button" />
 
         <Button
             android:id="@+id/update_state_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/update_state_button"/>
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:text="@string/update_state_button"
+            app:layout_constraintEnd_toEndOf="@+id/take_photo_button"
+            app:layout_constraintStart_toStartOf="@+id/take_photo_button"
+            app:layout_constraintTop_toBottomOf="@+id/update_info_button" />
 
         <Button
             android:id="@+id/mute_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/mute_button"/>
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:text="@string/mute_button"
+            app:layout_constraintEnd_toEndOf="@+id/take_photo_button"
+            app:layout_constraintStart_toStartOf="@+id/take_photo_button"
+            app:layout_constraintTop_toBottomOf="@+id/update_state_button" />
 
         <Button
             android:id="@+id/full_volume_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/full_volume_button"/>
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
+            android:text="@string/full_volume_button"
+            app:layout_constraintEnd_toEndOf="@+id/take_photo_button"
+            app:layout_constraintStart_toStartOf="@+id/take_photo_button"
+            app:layout_constraintTop_toBottomOf="@+id/mute_button" />
 
         <ImageView
             android:id="@+id/response_image_view"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="8dp"
             android:padding="24dp"
-            android:text="Response"/>
+            android:text="Response"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/full_volume_button" />
 
-    </LinearLayout>
+    </android.support.constraint.ConstraintLayout>
 
 </android.support.constraint.ConstraintLayout>
