@@ -85,21 +85,12 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
         findAllViews();
         setAllOnClickListeners();
 
-        List<String> permissions = new ArrayList<>();
-        permissions.add(Manifest.permission.INTERNET);
-        permissions.add((Manifest.permission.READ_EXTERNAL_STORAGE));
-        permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
-        checkPermissions(permissions);
-
         mCameraConnector = new ConcreteCameraConnector(Volley.newRequestQueue(this), "http://192.168.1.1");
         mDownloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
 
         mCameraConnector.registerObserver(this);
 
         mCameraConnector.updateCameraInfo();
-
-
 
     }
 
@@ -138,17 +129,6 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
             Log.v(TAG, "Full volume pressed");
             mCameraConnector.setShutterVolume(100);
         });
-    }
-
-    private void checkPermissions(List<String> permissions) {
-        for (String permission : permissions) {
-            if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
-                Log.e(TAG, permission + " NOT granted");
-                ActivityCompat.requestPermissions(this, new String[] {permission}, 0);
-            } else {
-                Log.v(TAG, permission + " granted");
-            }
-        }
     }
 
     @Override

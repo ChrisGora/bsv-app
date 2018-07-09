@@ -1,9 +1,13 @@
 package uk.ac.bris.cs.bristolstreetview;
 
+import android.Manifest;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.Button;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -17,6 +21,13 @@ public class MainActivity extends AppCompatActivity {
         findAllViews();
         setAllOnClickListeners();
 
+        List<String> permissions = new ArrayList<>();
+        permissions.add(Manifest.permission.INTERNET);
+        permissions.add((Manifest.permission.READ_EXTERNAL_STORAGE));
+        permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
+        PermissionChecker permissionChecker = new PermissionChecker(this, this, permissions);
+        permissionChecker.checkPermissions();
     }
 
     private void findAllViews() {
