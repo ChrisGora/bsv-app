@@ -32,16 +32,17 @@ import org.apache.commons.imaging.ImageReadException;
 import org.apache.commons.imaging.ImageWriteException;
 import org.apache.commons.imaging.Imaging;
 import org.apache.commons.imaging.common.IImageMetadata;
-import org.apache.commons.imaging.common.ImageMetadata;
+import org.apache.commons.imaging.common.RationalNumber;
 import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
+import org.apache.commons.imaging.formats.jpeg.exif.ExifRewriter;
 import org.apache.commons.imaging.formats.tiff.TiffImageMetadata;
+import org.apache.commons.imaging.formats.tiff.constants.ExifTagConstants;
+import org.apache.commons.imaging.formats.tiff.write.TiffOutputDirectory;
 import org.apache.commons.imaging.formats.tiff.write.TiffOutputSet;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -219,8 +220,9 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
                 processInputStream(input, filename, path);
                 input.close();
                 File file = new File(path, filename);
-                readImageMetadata2(file);
                 readImageMetadata(file);
+                updateImageMetadata(file);
+                readImageMetadata(new File(path, appendFilename(filename)));
             } else {
                 Log.e(TAG, "saveBytesAsImage: FAILED TO CREATE A DIRECTORY");
             }
@@ -254,55 +256,55 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
     }
 
 
-    private void readImageMetadata2(File file) throws ImageProcessingException, IOException, XMPException {
+    private void readImageMetadata(File file) throws ImageProcessingException, IOException, XMPException {
         Metadata metadata = ImageMetadataReader.readMetadata(file);
 
         for (Directory directory : metadata.getDirectories()) {
             for (Tag tag : directory.getTags()) {
-                Log.i(TAG, "saveBytesAsImage: " + directory.getName() + " " + tag.getTagName() + " " + tag.getDescription());
+                Log.i(TAG, "readImageMetadata: " + directory.getName() + " " + tag.getTagName() + " " + tag.getDescription());
             }
 
             if (directory.hasErrors()) {
                 for (String error : directory.getErrors()) {
-                    Log.e(TAG, "saveBytesAsImage: Metadata error: " + error);
+                    Log.e(TAG, "readImageMetadata: Metadata error: " + error);
                 }
             }
 
             if (directory.getName().equals("XMP")) {
-                Log.i(TAG, "saveBytesAsImage: XMP DETECTED");
+                Log.i(TAG, "readImageMetadata: XMP DETECTED");
                 XmpDirectory xmpDirectory = (XmpDirectory) directory;
                 XMPMeta xmpMeta = xmpDirectory.getXMPMeta();
                 XMPIterator iterator = xmpMeta.iterator();
                 while (iterator.hasNext()) {
                     XMPPropertyInfo info = (XMPPropertyInfo) iterator.next();
                     Objects.requireNonNull(info);
-                    Log.i(TAG, "saveBytesAsImage: XMP: " + info.getPath() + " " + info.getValue());
+                    Log.i(TAG, "readImageMetadata: XMP: " + info.getPath() + " " + info.getValue());
                 }
             }
         }
     }
 
 
-    private void readImageMetadata(File file) throws ImageProcessingException, IOException, XMPException {
+    private void updateImageMetadata(File file) throws ImageProcessingException, IOException, XMPException {
         try {
-            OutputStream os = new BufferedOutputStream(new FileOutputStream(new File(file.getParent(), appendFilename(file.getName()))));
+            OutputStream out = new BufferedOutputStream(new FileOutputStream(new File(file.getParent(), appendFilename(file.getName()))));
             TiffOutputSet outputSet = new TiffOutputSet();
 
 //            File newFile = new File(file.getParent(), "123.jpg");
 //            BufferedInputStream bis= new BufferedInputStream(new FileInputStream(newFile));
 
 //            InputStream in = new FileInputStream(file);
-//            Log.d(TAG, "readImageMetadata: available " + in.available());
+//            Log.d(TAG, "updateImageMetadata: available " + in.available());
 //            int i1 = in.read();
 //            int i2 = in.read();
 //            int i3 = in.read();
 
 //            while (true) {
 //                int i = in.read();
-//                Log.i(TAG, "readImageMetadata: " + i);
+//                Log.i(TAG, "updateImageMetadata: " + i);
 //            }
 
-//            Log.d(TAG, "readImageMetadata: NewFile: " + i1 + "   " + i2 + "   " + i3);
+//            Log.d(TAG, "updateImageMetadata: NewFile: " + i1 + "   " + i2 + "   " + i3);
 
             final IImageMetadata imageMetadata = Imaging.getMetadata(file);
             final JpegImageMetadata metadata = (JpegImageMetadata) Imaging.getMetadata(file);
@@ -311,6 +313,14 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
                 if (exif != null) {
                     outputSet = exif.getOutputSet();
                 }
+
+                final TiffOutputDirectory exifDirectory = outputSet.getOrCreateExifDirectory();
+
+                exifDirectory.removeField(ExifTagConstants.EXIF_TAG_APERTURE_VALUE);
+                exifDirectory.add(ExifTagConstants.EXIF_TAG_APERTURE_VALUE, new RationalNumber(32, 1));
+
+                new ExifRewriter().updateExifMetadataLossless(file, out, outputSet);
+
             }
         } catch (ImageReadException | ImageWriteException e) {
             e.printStackTrace();
