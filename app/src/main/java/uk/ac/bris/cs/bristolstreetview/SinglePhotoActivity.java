@@ -35,8 +35,11 @@ import org.apache.commons.imaging.common.IImageMetadata;
 import org.apache.commons.imaging.common.RationalNumber;
 import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
 import org.apache.commons.imaging.formats.jpeg.exif.ExifRewriter;
+import org.apache.commons.imaging.formats.tiff.TiffField;
 import org.apache.commons.imaging.formats.tiff.TiffImageMetadata;
 import org.apache.commons.imaging.formats.tiff.constants.ExifTagConstants;
+import org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants;
+import org.apache.commons.imaging.formats.tiff.taginfos.TagInfo;
 import org.apache.commons.imaging.formats.tiff.write.TiffOutputDirectory;
 import org.apache.commons.imaging.formats.tiff.write.TiffOutputSet;
 
@@ -47,11 +50,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 //import javax.inject.Inject;
 
 public class SinglePhotoActivity extends AppCompatActivity implements CameraConnectorObserver{
@@ -317,8 +323,17 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
                 final TiffOutputDirectory exifDirectory = outputSet.getOrCreateExifDirectory();
 
                 exifDirectory.removeField(ExifTagConstants.EXIF_TAG_APERTURE_VALUE);
-                exifDirectory.add(ExifTagConstants.EXIF_TAG_APERTURE_VALUE, new RationalNumber(32, 1));
+                exifDirectory.add(ExifTagConstants.EXIF_TAG_APERTURE_VALUE, new RationalNumber(3, 1));
 
+                exifDirectory.removeField(ExifTagConstants.EXIF_TAG_GAMMA);
+                exifDirectory.add(ExifTagConstants.EXIF_TAG_GAMMA, new RationalNumber(100, 1));
+
+                UUID uuid = UUID.randomUUID();
+                String uuidString = uuid.toString().replace("-", "");
+                Log.d(TAG, "updateImageMetadata: uuid: " + uuidString);
+
+                exifDirectory.removeField(ExifTagConstants.EXIF_TAG_IMAGE_UNIQUE_ID);
+                exifDirectory.add(ExifTagConstants.EXIF_TAG_IMAGE_UNIQUE_ID, uuidString);
                 new ExifRewriter().updateExifMetadataLossless(file, out, outputSet);
 
             }
@@ -342,6 +357,15 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
         Log.d(TAG, "appendFilename: OLD: " + filename);
         Log.d(TAG, "appendFilename: NEW: " + newFilename);
         return newFilename;
+    }
+
+    private void logTagValue(final JpegImageMetadata metadata, final TagInfo tagInfo) {
+        TiffField field = metadata.findEXIFValueWithExactMatch(tagInfo);
+        if (field == null) {
+            Log.e(TAG, "logTagValue: TAG NOT FOUND: " + tagInfo);
+        } else {
+            Log.i(TAG, "logTagValue: TAG: " + tagInfo.name + ": " + field.getValueDescription());
+        }
     }
 
 /*
