@@ -28,12 +28,24 @@ import com.drew.metadata.xmp.XmpDirectory;
 import com.squareup.picasso.Picasso;
 import com.squareup.picasso.Target;
 
+import org.apache.commons.imaging.ImageReadException;
+import org.apache.commons.imaging.ImageWriteException;
+import org.apache.commons.imaging.Imaging;
+import org.apache.commons.imaging.common.IImageMetadata;
+import org.apache.commons.imaging.common.ImageMetadata;
+import org.apache.commons.imaging.formats.jpeg.JpegImageMetadata;
+import org.apache.commons.imaging.formats.tiff.TiffImageMetadata;
+import org.apache.commons.imaging.formats.tiff.write.TiffOutputSet;
+
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -191,6 +203,12 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
         Log.d(TAG, "saveBytesAsImage: HERE");
         String filename = getFilename();
         long lengthOfFile = bytes.length;
+        Log.d(TAG, "saveBytesAsImage: length of byte array: " + lengthOfFile);
+        int n = 0;
+        while (n < 100) {
+            Log.d(TAG, "saveBytesAsImage: byte: " + bytes[n]);
+            n++;
+        }
         try {
             InputStream input = new ByteArrayInputStream(bytes);
 //            File path = ;
@@ -200,6 +218,9 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
             if (done) {
                 processInputStream(input, filename, path);
                 input.close();
+                File file = new File(path, filename);
+                readImageMetadata2(file);
+                readImageMetadata(file);
             } else {
                 Log.e(TAG, "saveBytesAsImage: FAILED TO CREATE A DIRECTORY");
             }
@@ -219,19 +240,21 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
         long total = 0;
 
         int count = input.read(data);
+
         while (count != -1) {
             total = total + count;
             output.write(data, 0, count);
             count = input.read(data);
         }
 
-        readImageMetadata(file);
-
         output.flush();
         output.close();
+
+
     }
 
-    private void readImageMetadata(File file) throws ImageProcessingException, IOException, XMPException {
+
+    private void readImageMetadata2(File file) throws ImageProcessingException, IOException, XMPException {
         Metadata metadata = ImageMetadataReader.readMetadata(file);
 
         for (Directory directory : metadata.getDirectories()) {
@@ -259,14 +282,56 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
         }
     }
 
+
+    private void readImageMetadata(File file) throws ImageProcessingException, IOException, XMPException {
+        try {
+            OutputStream os = new BufferedOutputStream(new FileOutputStream(new File(file.getParent(), appendFilename(file.getName()))));
+            TiffOutputSet outputSet = new TiffOutputSet();
+
+//            File newFile = new File(file.getParent(), "123.jpg");
+//            BufferedInputStream bis= new BufferedInputStream(new FileInputStream(newFile));
+
+//            InputStream in = new FileInputStream(file);
+//            Log.d(TAG, "readImageMetadata: available " + in.available());
+//            int i1 = in.read();
+//            int i2 = in.read();
+//            int i3 = in.read();
+
+//            while (true) {
+//                int i = in.read();
+//                Log.i(TAG, "readImageMetadata: " + i);
+//            }
+
+//            Log.d(TAG, "readImageMetadata: NewFile: " + i1 + "   " + i2 + "   " + i3);
+
+            final IImageMetadata imageMetadata = Imaging.getMetadata(file);
+            final JpegImageMetadata metadata = (JpegImageMetadata) Imaging.getMetadata(file);
+            if (metadata != null) {
+                TiffImageMetadata exif = metadata.getExif();
+                if (exif != null) {
+                    outputSet = exif.getOutputSet();
+                }
+            }
+        } catch (ImageReadException | ImageWriteException e) {
+            e.printStackTrace();
+        }
+    }
+
     @VisibleForTesting
     String getFilename() {
         String date = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.LONG).format(new Date());
         String filename = mCameraInfo.getSerialNumber() + " " + date.replace(":", "-");
         filename = filename + ".jpg";
-        Log.d(TAG, "getFilename: DATE: " + date);
+//        Log.d(TAG, "getFilename: DATE: " + date);
         Log.d(TAG, "getFilename: FILENAME: " + filename);
         return filename;
+    }
+
+    String appendFilename(String filename) {
+        String newFilename = filename.replace(".jpg", "_E.jpg");
+        Log.d(TAG, "appendFilename: OLD: " + filename);
+        Log.d(TAG, "appendFilename: NEW: " + newFilename);
+        return newFilename;
     }
 
 /*
