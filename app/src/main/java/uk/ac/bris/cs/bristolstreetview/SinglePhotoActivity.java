@@ -89,8 +89,8 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
         permissions.add(Manifest.permission.INTERNET);
         permissions.add((Manifest.permission.READ_EXTERNAL_STORAGE));
         permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
         checkPermissions(permissions);
-//        checkPermissions(permissions);
 
         mCameraConnector = new ConcreteCameraConnector(Volley.newRequestQueue(this), "http://192.168.1.1");
         mDownloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
@@ -98,6 +98,8 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
         mCameraConnector.registerObserver(this);
 
         mCameraConnector.updateCameraInfo();
+
+
 
     }
 
