@@ -6,6 +6,21 @@
     android:layout_height="match_parent"
     tools:context=".AutomaticPhotoActivity">
 
+    <ImageView
+        android:id="@+id/auto_response_image_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:padding="24dp"
+        android:text="Response"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/stop_auto_time_button" />
+
     <Button
         android:id="@+id/start_auto_location_button"
         android:layout_width="wrap_content"

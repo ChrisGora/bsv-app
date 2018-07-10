@@ -3,6 +3,7 @@ package uk.ac.bris.cs.bristolstreetview;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.provider.ContactsContract;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -12,12 +13,14 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.squareup.picasso.Picasso;
 
 import java.sql.Time;
 import java.util.concurrent.ExecutorService;
@@ -25,7 +28,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-public class AutomaticPhotoActivity extends AppCompatActivity {
+public class AutomaticPhotoActivity extends AppCompatActivity implements PhotoTakerObserver {
 
     private static final String TAG = "AutomaticPhotoActivity";
 
@@ -35,12 +38,18 @@ public class AutomaticPhotoActivity extends AppCompatActivity {
     private Button mStopTimeButton;
 
     private EditText mTimeIntervalField;
+    private ImageView mResponseImageView;
+
 
     private Location mLastPhotoLocation;
 
-    private int mTimeInterval;
+    private int mTimeInterval = 10;
+
+    private PhotoTaker mPhotoTaker;
 
     private FusedLocationProviderClient mFusedLocationClient;
+    private LocationCallback mLocationCallback;
+
     private ScheduledExecutorService mScheduledExecutorService;
 
     //    @SuppressLint("MissingPermission")
@@ -53,15 +62,20 @@ public class AutomaticPhotoActivity extends AppCompatActivity {
         setAllOnClickListeners();
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-//        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-//            Log.e(TAG, "onCreate: LOCATION permission was not granted");
-//        } else {
-//            mFusedLocationClient.getLastLocation().addOnSuccessListener((location) -> {
-//                Log.d(TAG, "Location: " + location);
-//                mLastPhotoLocation = location;
-//            });
+
+        mPhotoTaker = new ConcretePhotoTaker(this);
+        mPhotoTaker.registerObserver(this);
+
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Log.e(TAG, "onCreate: LOCATION permission was not granted");
+        } else {
+            mFusedLocationClient.getLastLocation().addOnSuccessListener((location) -> {
+                Log.d(TAG, "Location: " + location);
+                mLastPhotoLocation = location;
+            });
 //            startLocationUpdates();
-//        }
+        }
     }
 
     private void findAllViews() {
@@ -71,6 +85,7 @@ public class AutomaticPhotoActivity extends AppCompatActivity {
         mStopTimeButton = findViewById(R.id.stop_auto_time_button);
 
         mTimeIntervalField = findViewById(R.id.IntervalEditText);
+        mResponseImageView = findViewById(R.id.auto_response_image_view);
     }
 
     private void setAllOnClickListeners() {
@@ -102,19 +117,29 @@ public class AutomaticPhotoActivity extends AppCompatActivity {
         });
     }
 
-    private void startLocationPhotoTaking(View view) {
+    //----------------------------------------------------------------------------------------------
 
+    private void startLocationPhotoTaking(View view) {
+        startLocationUpdates();
     }
 
     private void stopLocationPhotoTaking(View view) {
-
+//        mFusedLocationClient.removeLocationUpdates(new LocationCallback() {
+//            @Override
+//            public void onLocationResult(LocationResult locationResult) {
+//                Log.d(TAG, "onLocationResult: stoplocation: Done?");
+//            }
+//        });
+        mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+        Log.d(TAG, "stopLocationPhotoTaking: Stop signal sent");
     }
 
     private void startTimePhotoTaking(View view) {
         mScheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
         mScheduledExecutorService.scheduleAtFixedRate(() -> {
             if (!Thread.interrupted()) {
-                Log.d(TAG, "startTimePhotoTaking: TEST");
+                Log.d(TAG, "startTimePhotoTaking: SCHEDULED");
+                mPhotoTaker.sendTakePhotoRequest();
             }
         }, 0, mTimeInterval, TimeUnit.SECONDS);
     }
@@ -126,6 +151,7 @@ public class AutomaticPhotoActivity extends AppCompatActivity {
     }
 
 
+    //----------------------------------------------------------------------------------------------
     //    @SuppressLint("MissingPermission")
     private void startLocationUpdates() {
         LocationRequest locationRequest = new LocationRequest();
@@ -139,7 +165,7 @@ public class AutomaticPhotoActivity extends AppCompatActivity {
             Log.e(TAG, "onCreate: LOCATION permission was not granted");
         } else {
 
-            mFusedLocationClient.requestLocationUpdates(locationRequest, new LocationCallback() {
+            mLocationCallback = new LocationCallback() {
                 @Override
                 public void onLocationResult(LocationResult locationResult) {
                     if (locationResult == null) {
@@ -151,12 +177,42 @@ public class AutomaticPhotoActivity extends AppCompatActivity {
                         }
                     }
                 }
-            }, null);
+            };
+            mFusedLocationClient.requestLocationUpdates(locationRequest, mLocationCallback, null);
         }
     }
 
     private void onCurrentLocationUpdated(Location location) {
-        float distance = mLastPhotoLocation.distanceTo(location);
+        Log.d(TAG, "onCurrentLocationUpdated: Location updated");
+        boolean isFirstPhoto = mLastPhotoLocation == null;
+        float distance = 0;
+        if (!isFirstPhoto) {
+            Log.d(TAG, "onCurrentLocationUpdated: Last location was NOT null");
+            distance = mLastPhotoLocation.distanceTo(location);
+        }
         Log.i(TAG, "onCurrentLocationUpdated: Distance walked: " + distance);
+        if ((distance > 10) || isFirstPhoto) {
+            mPhotoTaker.sendTakePhotoRequest();
+            mLastPhotoLocation = location;
+        }
+    }
+
+    @Override
+    public void onPhotoTaken(String url) {
+        Log.d(TAG, "onPhotoTaken: Got a url...");
+        displayImage(url);
+    }
+
+    private void displayImage(String url) {
+        Picasso
+                .get()
+                .load(url)
+                .resize(500, 500)
+                .into(mResponseImageView);
+    }
+
+    @Override
+    public void onPhotoSavedAndProcessed(String fullPath) {
+        Log.i(TAG, "onPhotoSavedAndProcessed: DONE!!! " + fullPath);
     }
 }

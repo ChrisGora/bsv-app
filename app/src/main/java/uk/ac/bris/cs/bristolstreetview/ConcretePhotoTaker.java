@@ -119,6 +119,7 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
     @Override
     public void onTakePhotoDone(CameraOutput output) {
         String url = output.getResults().getFileUrl();
+        onPhotoTakenAll(url);
         Log.i(TAG, "onTakePhotoDone: " + url);
         mCameraConnector.requestDownloadPhotoAsBytes(url);
     }
@@ -146,6 +147,7 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
                 readImageMetadata(file);
                 updateImageMetadata(file);
                 readImageMetadata(new File(path, appendFilename(filename)));
+                onPhotoSavedAndProcessedAll(path + File.separator + appendFilename(filename));
             } else {
                 Log.e(TAG, "saveBytesAsImage: FAILED TO CREATE A DIRECTORY");
             }
