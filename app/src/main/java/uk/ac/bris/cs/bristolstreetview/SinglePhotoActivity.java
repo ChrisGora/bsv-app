@@ -150,7 +150,6 @@ public class SinglePhotoActivity extends AppCompatActivity implements CameraConn
         Log.i(TAG, "battery level: " + newCameraState.getState().getBatteryLevel());
     }
 
-
     @Override
     public void onTakePhotoInProgress(CameraOutput output) {
         Log.i(TAG, "onTakePhotoInProgress: id: " + output.getId());
