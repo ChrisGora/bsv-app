@@ -37,5 +37,4 @@ public class PermissionChecker {
         }
         if (!notGranted.isEmpty()) ActivityCompat.requestPermissions(mActivity, notGranted.toArray(new String[] {}), 0);
     }
-
 }

@@ -1,12 +1,15 @@
 package uk.ac.bris.cs.bristolstreetview;
 
-public class PhotoTaker {
-    private static final PhotoTaker ourInstance = new PhotoTaker();
+interface PhotoTaker {
+    void registerObserver(PhotoTakerObserver observer);
 
-    public static PhotoTaker getInstance() {
-        return ourInstance;
-    }
+    void removeObserver(PhotoTakerObserver observer);
 
-    private PhotoTaker() {
-    }
+    void updateCameraInfo();
+
+    void updateCameraState();
+
+    void setShutterVolume(int volume);
+
+    void sendTakePhotoRequest();
 }

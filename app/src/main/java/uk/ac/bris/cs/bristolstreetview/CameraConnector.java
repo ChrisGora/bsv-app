@@ -8,7 +8,8 @@ interface CameraConnector {
     void updateCameraInfo();
     void updateCameraState();
     void setShutterVolume(int volume);
+
     void sendTakePhotoRequest();
-    void requestPhotoAsBytes(String url);
+    void requestDownloadPhotoAsBytes(String url);
 
 }

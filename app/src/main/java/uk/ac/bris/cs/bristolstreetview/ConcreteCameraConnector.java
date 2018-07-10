@@ -49,36 +49,6 @@ class ConcreteCameraConnector implements CameraConnector {
         Log.v(TAG, "Queue and URL set!");
     }
 
-/*    @Override
-    public void updateCameraInfo() {
-        String url = mUrl + "/osc/info";
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null,
-                (response) -> {
-                    mRequestsPending--;
-                    Log.v(TAG, "RESPONSE: Requests pending: " + mRequestsPending);
-//                    Log.v(TAG, response.toString());
-                    CameraInfo cameraInfo = new CameraInfo();
-                    try {
-                        cameraInfo.setSerialNumber(response.getString("serialNumber"));
-                        cameraInfo.setFirmwareVersion(response.getString("firmwareVersion"));
-                        cameraInfo.setGpsPresent(response.getBoolean("gps"));
-                        cameraInfo.setGyroPresent(response.getBoolean("gyro"));
-                        onCameraInfoUpdatedAll(cameraInfo);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                },
-                (response) -> {
-                    mRequestsPending--;
-                    Log.v(TAG, "RESPONSE: Requests pending: " + mRequestsPending);
-                    Log.e(TAG, "That didn't work :-(");
-                }
-        );
-        mRequestsPending++;
-        mQueue.add(request);
-        Log.v(TAG, "QUEUED: Requests pending: " + mRequestsPending);
-    }*/
-
     @Override
     public void updateCameraInfo() {  //GSON VERSION
         String url = mUrl + "/osc/info";
@@ -236,13 +206,13 @@ class ConcreteCameraConnector implements CameraConnector {
     }
 
     @Override
-    public void requestPhotoAsBytes(String url) {
+    public void requestDownloadPhotoAsBytes(String url) {
         InputStreamVolleyRequest request = new InputStreamVolleyRequest(Request.Method.GET, url,
                 (response) -> {
-                    Log.d(TAG, "requestPhotoAsBytes: bytes are " + response);
+                    Log.d(TAG, "requestDownloadPhotoAsBytes: bytes are " + response);
                     onPhotoAsBytesDownloadedAll(response);
                 },
-                (error) -> Log.e(TAG, "requestPhotoAsBytes: test"),
+                (error) -> Log.e(TAG, "requestDownloadPhotoAsBytes: test"),
                 null);
         mQueue.add(Objects.requireNonNull(request));
     }
