@@ -1,7 +1,9 @@
 package uk.ac.bris.cs.bristolstreetview;
 
 import android.content.Context;
+import android.os.Build;
 import android.os.Environment;
+import android.support.annotation.RequiresApi;
 import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 
@@ -40,6 +42,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -226,6 +229,23 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
 
                 exifDirectory.removeField(ExifTagConstants.EXIF_TAG_GAMMA);
                 exifDirectory.add(ExifTagConstants.EXIF_TAG_GAMMA, new RationalNumber(100, 1));
+
+                Date date = new Date();
+
+                Calendar calendar = Calendar.getInstance();
+
+                int year = calendar.get(Calendar.YEAR);
+                int month = calendar.get(Calendar.MONTH) + 1;
+                int day = calendar.get(Calendar.DAY_OF_MONTH);
+                int hours = calendar.get(Calendar.HOUR_OF_DAY);
+                int minutes = calendar.get(Calendar.MINUTE);
+
+                String month;
+                if (month.toString().length() == 1) month = "0" + month.toString();
+
+                // TODO: 19/07/18  Use java.time instead!!!
+                
+                String timestamp = year + ":" + monthSubstring + month + ":" +day + " " + hours + ":" + minutes;
 
                 UUID uuid = UUID.randomUUID();
                 String uuidString = uuid.toString().replace("-", "");

@@ -42,7 +42,7 @@ public class SinglePhotoActivityTest {
     @Test
     public void getFilename() {
         when(mockCameraInfo.getSerialNumber()).thenReturn("12345");
-        activity.getFilename();
+//        activity.getFilename();
     }
 
     @Test
