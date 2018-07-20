@@ -1,7 +1,10 @@
 package uk.ac.bris.cs.bristolstreetview;
 
+import org.joda.time.DateTime;
 import org.junit.Test;
 
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Calendar;
 
 import static org.junit.Assert.*;
@@ -31,4 +34,20 @@ public class ConcretePhotoTakerTest {
         System.out.println(timestamp);
 
     }
+
+    @Test
+    public void timestampTestUsingJavaTime() {
+        DateTime time = new DateTime();
+//        LocalDateTime time = LocalDateTime.now();
+        String timeString = time.toString().replace("-", ":").replace("T", " ").substring(0, 19);
+        System.out.println(timeString);
+
+    }
+
+    @Test
+    public void filenameTest() {
+        ConcretePhotoTaker photoTaker = new ConcretePhotoTaker(null);
+        System.out.println(photoTaker.getFilename());
+    }
+
 }

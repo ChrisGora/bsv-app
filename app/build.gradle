@@ -30,6 +30,10 @@ dependencies {
     implementation 'com.squareup.picasso:picasso:2.71828'
     implementation 'com.drewnoakes:metadata-extractor:2.11.0'
     implementation 'com.google.android.gms:play-services-location:15.0.1'
+    implementation 'com.jakewharton.threetenabp:threetenabp:1.1.0'
+
+    implementation 'joda-time:joda-time:2.10'
+
     // https://mvnrepository.com/artifact/org.apache.commons/commons-imaging
     implementation group: 'org.apache.commons', name: 'commons-imaging', version: '1.0-R1534292'
 

@@ -1,5 +1,6 @@
 package uk.ac.bris.cs.bristolstreetview;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Build;
 import android.os.Environment;
@@ -29,9 +30,11 @@ import org.apache.commons.imaging.formats.jpeg.exif.ExifRewriter;
 import org.apache.commons.imaging.formats.tiff.TiffField;
 import org.apache.commons.imaging.formats.tiff.TiffImageMetadata;
 import org.apache.commons.imaging.formats.tiff.constants.ExifTagConstants;
+import org.apache.commons.imaging.formats.tiff.constants.TiffTagConstants;
 import org.apache.commons.imaging.formats.tiff.taginfos.TagInfo;
 import org.apache.commons.imaging.formats.tiff.write.TiffOutputDirectory;
 import org.apache.commons.imaging.formats.tiff.write.TiffOutputSet;
+import org.joda.time.DateTime;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -41,6 +44,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.DateFormat;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -57,7 +61,11 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
     private CameraConnector mCameraConnector;
     private CameraInfo mCameraInfo;
 
+    private Context mContext;
+
     ConcretePhotoTaker(Context context) {
+
+        mContext = context;
 
         mObservers = new ArrayList<>();
 
@@ -135,7 +143,8 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
 
     private void saveBytesAsImage(byte[] bytes) {
         Log.d(TAG, "saveBytesAsImage: HERE");
-        String filename = getFilename();
+        long instant = new Date().getTime();
+        String filename = getFilename(instant);
         long lengthOfFile = bytes.length;
         Log.d(TAG, "saveBytesAsImage: length of byte array: " + lengthOfFile);
         try {
@@ -148,7 +157,7 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
                 input.close();
                 File file = new File(path, filename);
                 readImageMetadata(file);
-                updateImageMetadata(file);
+                updateImageMetadata(file, instant);
                 readImageMetadata(new File(path, appendFilename(filename)));
                 onPhotoSavedAndProcessedAll(path + File.separator + appendFilename(filename));
             } else {
@@ -210,7 +219,7 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
     }
 
 
-    private void updateImageMetadata(File file) throws ImageProcessingException, IOException, XMPException {
+    private void updateImageMetadata(File file, long instant) throws ImageProcessingException, IOException, XMPException {
         try {
             OutputStream out = new BufferedOutputStream(new FileOutputStream(new File(file.getParent(), appendFilename(file.getName()))));
             TiffOutputSet outputSet = new TiffOutputSet();
@@ -230,22 +239,14 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
                 exifDirectory.removeField(ExifTagConstants.EXIF_TAG_GAMMA);
                 exifDirectory.add(ExifTagConstants.EXIF_TAG_GAMMA, new RationalNumber(100, 1));
 
-                Date date = new Date();
 
-                Calendar calendar = Calendar.getInstance();
+//                AndroidThreeTen.init(mContext);
 
-                int year = calendar.get(Calendar.YEAR);
-                int month = calendar.get(Calendar.MONTH) + 1;
-                int day = calendar.get(Calendar.DAY_OF_MONTH);
-                int hours = calendar.get(Calendar.HOUR_OF_DAY);
-                int minutes = calendar.get(Calendar.MINUTE);
+                DateTime time = new DateTime(instant);
 
-                String month;
-                if (month.toString().length() == 1) month = "0" + month.toString();
-
-                // TODO: 19/07/18  Use java.time instead!!!
-                
-                String timestamp = year + ":" + monthSubstring + month + ":" +day + " " + hours + ":" + minutes;
+//                LocalDateTime time = LocalDateTime.now();
+                String timeString = time.toString().replace("-", ":").replace("T", " ").substring(0, 19);
+                Log.d(TAG, "updateImageMetadata: TIMESTRING: " + timeString);
 
                 UUID uuid = UUID.randomUUID();
                 String uuidString = uuid.toString().replace("-", "");
@@ -253,6 +254,16 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
 
                 exifDirectory.removeField(ExifTagConstants.EXIF_TAG_IMAGE_UNIQUE_ID);
                 exifDirectory.add(ExifTagConstants.EXIF_TAG_IMAGE_UNIQUE_ID, uuidString);
+
+                exifDirectory.removeField(ExifTagConstants.EXIF_TAG_DATE_TIME_ORIGINAL);
+                exifDirectory.add(ExifTagConstants.EXIF_TAG_DATE_TIME_ORIGINAL, timeString);
+
+                exifDirectory.removeField(ExifTagConstants.EXIF_TAG_DATE_TIME_DIGITIZED);
+                exifDirectory.add(ExifTagConstants.EXIF_TAG_DATE_TIME_DIGITIZED, timeString);
+
+                exifDirectory.removeField(TiffTagConstants.TIFF_TAG_DATE_TIME);
+                exifDirectory.add(TiffTagConstants.TIFF_TAG_DATE_TIME, timeString);
+
                 new ExifRewriter().updateExifMetadataLossless(file, out, outputSet);
 
             }
@@ -262,8 +273,8 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
     }
 
     @VisibleForTesting
-    String getFilename() {
-        String date = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.LONG).format(new Date());
+    String getFilename(long instant) {
+        String date = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.LONG).format(new Date(instant));
         String filename = mCameraInfo.getSerialNumber() + " " + date.replace(":", "-");
         filename = filename + ".jpg";
 //        Log.d(TAG, "getFilename: DATE: " + date);
