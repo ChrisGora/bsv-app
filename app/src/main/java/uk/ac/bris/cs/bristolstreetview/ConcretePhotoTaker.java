@@ -264,6 +264,8 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
                 exifDirectory.removeField(TiffTagConstants.TIFF_TAG_DATE_TIME);
                 exifDirectory.add(TiffTagConstants.TIFF_TAG_DATE_TIME, timeString);
 
+                // TODO: 20/07/18 Get location and sensor data and save it in EXIF as well! 
+                
                 new ExifRewriter().updateExifMetadataLossless(file, out, outputSet);
 
             }
