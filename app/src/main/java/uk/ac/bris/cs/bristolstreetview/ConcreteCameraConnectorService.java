@@ -84,8 +84,12 @@ public class ConcreteCameraConnectorService extends Service implements CameraCon
     @Override
     public void onCreate() {
         Log.i(TAG, "onCreate: >>>>>>>>>>>>>>>>>>> ON CREATE");
+        Log.i(TAG, "onCreate: " + Thread.currentThread());
 
         Context context = getApplicationContext();
+
+        // TODO: 25/07/18 Clicking the notification takes you back to the wrong activity
+
         Objects.requireNonNull(context, "getApplicationContext() returned null");
 
         mNM = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
@@ -134,7 +138,7 @@ public class ConcreteCameraConnectorService extends Service implements CameraCon
 
         // TODO: 25/07/18 FOREGROUND
 
-//        startForeground(NOTIFICATION, notification);
+        startForeground(NOTIFICATION, notification);
     }
 
     public Notification getNotification(Context context) {

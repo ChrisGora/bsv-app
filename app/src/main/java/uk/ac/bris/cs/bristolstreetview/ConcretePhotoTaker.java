@@ -77,6 +77,11 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
                 mBoundCameraConnector = ((ConcreteCameraConnectorService.LocalBinder)service).getService();
                 Toast.makeText(context, R.string.local_CCC_service_connected, Toast.LENGTH_SHORT).show();
                 Log.i(TAG, "onServiceConnected: !!!!!!!!!!!!! CONNECTED");
+                Objects.requireNonNull(mBoundCameraConnector, "Connected: Bound camera connector was null");
+                mBoundCameraConnector.setUrl("http://192.168.1.1");
+                mBoundCameraConnector.registerObserver(ConcretePhotoTaker.this);
+                mBoundCameraConnector.updateCameraInfo();
+                Log.i(TAG, "onServiceConnected: " + Thread.currentThread());
             }
 
             @Override
@@ -87,15 +92,10 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
         };
 
         Intent intent = new Intent(mContext, ConcreteCameraConnectorService.class);
-        mContext.startService(intent);
-        context.bindService(intent, mConnection, 0);
-
-//        Objects.requireNonNull(mBoundCameraConnector, "Bound camera connector was null");
-
-//        mBoundCameraConnector = Objects.requireNonNull(ConcreteCameraConnectorService.getInstance(), "CCC was null");
-//        mBoundCameraConnector.setUrl("http://192.168.1.1");
-//        mBoundCameraConnector.registerObserver(this);
-//        mBoundCameraConnector.updateCameraInfo();
+//        synchronized (this) {
+            mContext.startService(intent);
+            context.bindService(intent, mConnection, 0);
+//        }
     }
 
     @Override

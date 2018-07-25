@@ -30,6 +30,8 @@ public class SinglePhotoActivity extends AppCompatActivity implements PhotoTaker
 
 
         mPhotoTaker = new ConcretePhotoTaker(this);
+        Log.i(TAG, "onCreate: >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> SINGLE ACTIVITY");
+        Log.i(TAG, "onCreate: " + Thread.currentThread());
         mPhotoTaker.registerObserver(this);
 
         findAllViews();
