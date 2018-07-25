@@ -1,6 +1,9 @@
 package uk.ac.bris.cs.bristolstreetview;
 
+import android.location.Location;
+
 interface PhotoTaker {
+
     void registerObserver(PhotoTakerObserver observer);
 
     void removeObserver(PhotoTakerObserver observer);
@@ -11,5 +14,6 @@ interface PhotoTaker {
 
     void setShutterVolume(int volume);
 
-    void sendTakePhotoRequest();
+    void sendTakePhotoRequest(PhotoRequest photoRequest);
+
 }

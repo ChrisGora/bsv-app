@@ -139,7 +139,7 @@ public class AutomaticPhotoActivity extends AppCompatActivity implements PhotoTa
         mScheduledExecutorService.scheduleAtFixedRate(() -> {
             if (!Thread.interrupted()) {
                 Log.d(TAG, "startTimePhotoTaking: SCHEDULED");
-                mPhotoTaker.sendTakePhotoRequest();
+                mPhotoTaker.sendTakePhotoRequest(new PhotoRequest());
             }
         }, 0, mTimeInterval, TimeUnit.SECONDS);
     }
@@ -192,15 +192,17 @@ public class AutomaticPhotoActivity extends AppCompatActivity implements PhotoTa
         }
         Log.i(TAG, "onCurrentLocationUpdated: Distance walked: " + distance);
         if ((distance > 10) || isFirstPhoto) {
-            mPhotoTaker.sendTakePhotoRequest();
+            PhotoRequest photoRequest = new PhotoRequest();
+            photoRequest.setLocation(location);
+            mPhotoTaker.sendTakePhotoRequest(photoRequest);
             mLastPhotoLocation = location;
         }
     }
 
     @Override
-    public void onPhotoTaken(String url) {
+    public void onPhotoTaken(PhotoRequest photoRequest) {
         Log.d(TAG, "onPhotoTaken: Got a url...");
-        displayImage(url);
+        displayImage(photoRequest.getCameraUrl());
     }
 
     private void displayImage(String url) {
@@ -212,7 +214,7 @@ public class AutomaticPhotoActivity extends AppCompatActivity implements PhotoTa
     }
 
     @Override
-    public void onPhotoSavedAndProcessed(String fullPath) {
-        Log.i(TAG, "onPhotoSavedAndProcessed: DONE!!! " + fullPath);
+    public void onPhotoSavedAndProcessed(PhotoRequest photoRequest) {
+        Log.i(TAG, "onPhotoSavedAndProcessed: DONE!!! " + photoRequest.getDevicePath());
     }
 }

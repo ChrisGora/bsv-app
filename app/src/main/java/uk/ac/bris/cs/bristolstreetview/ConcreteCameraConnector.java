@@ -1,5 +1,10 @@
 package uk.ac.bris.cs.bristolstreetview;
 
+import android.app.Service;
+import android.content.Intent;
+import android.location.Location;
+import android.os.IBinder;
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.android.volley.Request;
@@ -13,6 +18,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +28,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-class ConcreteCameraConnector implements CameraConnector {
+class ConcreteCameraConnector extends Service implements CameraConnector {
 
     private static final String TAG = "CameraConnector";
 
@@ -36,6 +42,8 @@ class ConcreteCameraConnector implements CameraConnector {
 
     private Map<String, String> mJobStatusMap;
 
+
+
     ConcreteCameraConnector(RequestQueue queue, String url) {
         mObservers = new ArrayList<>();
         GsonBuilder builder = new GsonBuilder();
@@ -47,6 +55,12 @@ class ConcreteCameraConnector implements CameraConnector {
         mJobStatusMap = new HashMap<>();
 
         Log.v(TAG, "Queue and URL set!");
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
     }
 
     @Override
@@ -80,7 +94,7 @@ class ConcreteCameraConnector implements CameraConnector {
     }
 
     @Override
-    public void sendTakePhotoRequest() {
+    public void sendTakePhotoRequest(PhotoRequest photoRequest) {
         CameraCommand takePhotoCommand = new CameraCommand();
         takePhotoCommand.setName("camera.takePicture");
         String takePhotoJsonCommand = mGson.toJson(takePhotoCommand);
@@ -96,8 +110,8 @@ class ConcreteCameraConnector implements CameraConnector {
                         CameraOutput cameraOutput = mGson.fromJson(response.toString(), CameraOutput.class);
                          updateJobStatusMap(cameraOutput);
                          if (cameraOutput.getState().equals("inProgress")) {
-                             onTakePhotoInProgressAll(cameraOutput);
-                             setStatusListener(cameraOutput.getId());
+                             onTakePhotoInProgressAll(photoRequest, cameraOutput);
+                             setStatusListener(photoRequest, cameraOutput.getId());
                          } else {
                              throw new AssertionError("Photo taking not in progress");
                          }
@@ -109,10 +123,10 @@ class ConcreteCameraConnector implements CameraConnector {
             Log.e(TAG, "sendTakePhotoRequest: JSON fucked up", e);
         }
 
-        mQueue.add(Objects.requireNonNull(request));
+        mQueue.add(Objects.requireNonNull(request, "Request was null"));
     }
 
-    private void checkStatus(String id) {
+    private void checkStatus(PhotoRequest photoRequest, String id) {
 
         Log.d(TAG, "checkStatus: >>>>>>>>>>>>>>>>>>>>>>>>> HERE");
 
@@ -134,13 +148,13 @@ class ConcreteCameraConnector implements CameraConnector {
                         switch (state) {
                             case "done":            {
                                 Log.d(TAG, "checkStatus: DONE");
-                                onTakePhotoDoneAll(cameraOutput);
+                                onTakePhotoDoneAll(photoRequest, cameraOutput);
                                 updateJobStatusMap(id, state);
                                 break;
                             }
                             case "inProgress":      {
                                 Log.d(TAG, "checkStatus: PROGRESS");
-                                onTakePhotoInProgressAll(cameraOutput);
+                                onTakePhotoInProgressAll(photoRequest, cameraOutput);
                                 updateJobStatusMap(cameraOutput);
                                 break;
                             }
@@ -162,11 +176,11 @@ class ConcreteCameraConnector implements CameraConnector {
         mQueue.add(Objects.requireNonNull(request));
     }
 
-    private void setStatusListener(String id) {
+    private void setStatusListener(PhotoRequest photoRequest, String id) {
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
         executor.scheduleAtFixedRate(() -> {
-            if (mJobStatusMap.get(id).equals("inProgress")) checkStatus(id);
+            if (mJobStatusMap.get(id).equals("inProgress")) checkStatus(photoRequest, id);
             else executor.shutdownNow();
         },
                 100,
@@ -206,11 +220,12 @@ class ConcreteCameraConnector implements CameraConnector {
     }
 
     @Override
-    public void requestDownloadPhotoAsBytes(String url) {
+    public void requestDownloadPhotoAsBytes(PhotoRequest photoRequest) {
+        String url = photoRequest.getCameraUrl();
         InputStreamVolleyRequest request = new InputStreamVolleyRequest(Request.Method.GET, url,
                 (response) -> {
-                    Log.d(TAG, "requestDownloadPhotoAsBytes: bytes are " + response);
-                    onPhotoAsBytesDownloadedAll(response);
+                    Log.d(TAG, "requestDownloadPhotoAsBytes: bytes are " + Arrays.toString(response));
+                    onPhotoAsBytesDownloadedAll(photoRequest, response);
                 },
                 (error) -> Log.e(TAG, "requestDownloadPhotoAsBytes: test"),
                 null);
@@ -254,27 +269,27 @@ class ConcreteCameraConnector implements CameraConnector {
         }
     }
 
-    private void onTakePhotoInProgressAll(CameraOutput output) {
+    private void onTakePhotoInProgressAll(PhotoRequest photoRequest, CameraOutput output) {
         for (CameraConnectorObserver observer : mObservers) {
-            observer.onTakePhotoInProgress(output);
+            observer.onTakePhotoInProgress(photoRequest, output);
         }
     }
 
-    private void onTakePhotoErrorAll(CameraOutput output) {
+    private void onTakePhotoErrorAll(PhotoRequest photoRequest, CameraOutput output) {
         for (CameraConnectorObserver observer : mObservers) {
-            observer.onTakePhotoError(output);
+            observer.onTakePhotoError(photoRequest, output);
         }
     }
 
-    private void onTakePhotoDoneAll(CameraOutput output) {
+    private void onTakePhotoDoneAll(PhotoRequest photoRequest, CameraOutput output) {
         for (CameraConnectorObserver observer : mObservers) {
-            observer.onTakePhotoDone(output);
+            observer.onTakePhotoDone(photoRequest, output);
         }
     }
 
-    private void onPhotoAsBytesDownloadedAll(byte[] photo) {
+    private void onPhotoAsBytesDownloadedAll(PhotoRequest photoRequest, byte[] photo) {
         for (CameraConnectorObserver observer : mObservers) {
-            observer.onPhotoAsBytesDownloaded(photo);
+            observer.onPhotoAsBytesDownloaded(photoRequest, photo);
         }
     }
 }

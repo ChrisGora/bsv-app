@@ -1,5 +1,7 @@
 package uk.ac.bris.cs.bristolstreetview;
 
+import android.location.Location;
+
 interface CameraConnector {
 
     void registerObserver(CameraConnectorObserver observer);
@@ -7,9 +9,11 @@ interface CameraConnector {
 
     void updateCameraInfo();
     void updateCameraState();
+
     void setShutterVolume(int volume);
 
-    void sendTakePhotoRequest();
-    void requestDownloadPhotoAsBytes(String url);
+    void sendTakePhotoRequest(PhotoRequest photoRequest);
+
+    void requestDownloadPhotoAsBytes(PhotoRequest photoRequest);
 
 }

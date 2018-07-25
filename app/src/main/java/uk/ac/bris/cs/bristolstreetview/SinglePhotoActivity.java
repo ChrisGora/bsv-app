@@ -47,7 +47,7 @@ public class SinglePhotoActivity extends AppCompatActivity implements PhotoTaker
     private void setAllOnClickListeners() {
         mTakePhotoButton.setOnClickListener((view) -> {
             Log.v(TAG, "Take photo pressed");
-            mPhotoTaker.sendTakePhotoRequest();
+            mPhotoTaker.sendTakePhotoRequest(new PhotoRequest());
         });
 
         mUpdateInfoButton.setOnClickListener((view) -> {
@@ -72,9 +72,9 @@ public class SinglePhotoActivity extends AppCompatActivity implements PhotoTaker
     }
 
     @Override
-    public void onPhotoTaken(String url) {
+    public void onPhotoTaken(PhotoRequest photoRequest) {
         Log.d(TAG, "onPhotoTaken: Got a url...");
-        displayImage(url);
+        displayImage(photoRequest.getCameraUrl());
     }
 
 
@@ -87,7 +87,7 @@ public class SinglePhotoActivity extends AppCompatActivity implements PhotoTaker
     }
 
     @Override
-    public void onPhotoSavedAndProcessed(String fullPath) {
+    public void onPhotoSavedAndProcessed(PhotoRequest photoRequest) {
         Log.i(TAG, "onPhotoSavedAndProcessed: DONE!!!");
     }
 }

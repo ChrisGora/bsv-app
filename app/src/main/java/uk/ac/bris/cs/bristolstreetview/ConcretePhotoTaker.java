@@ -2,6 +2,7 @@ package uk.ac.bris.cs.bristolstreetview;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.location.Location;
 import android.os.Build;
 import android.os.Environment;
 import android.support.annotation.RequiresApi;
@@ -90,8 +91,8 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
     }
 
     @Override
-    public void sendTakePhotoRequest() {
-        mCameraConnector.sendTakePhotoRequest();
+    public void sendTakePhotoRequest(PhotoRequest photoRequest) {
+        mCameraConnector.sendTakePhotoRequest(photoRequest);
     }
 
     @Override
@@ -114,7 +115,7 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
     }
 
     @Override
-    public void onTakePhotoInProgress(CameraOutput output) {
+    public void onTakePhotoInProgress(PhotoRequest photoRequest, CameraOutput output) {
         Log.i(TAG, "onTakePhotoInProgress: id: " + output.getId());
         Log.i(TAG, "onTakePhotoInProgress: name: " + output.getName());
         Log.i(TAG, "onTakePhotoInProgress: completion: " + output.getProgress().getCompletion());
@@ -122,29 +123,30 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
     }
 
     @Override
-    public void onTakePhotoError(CameraOutput output) {
+    public void onTakePhotoError(PhotoRequest photoRequest, CameraOutput output) {
 //        Log.e(TAG, "onTakePhotoError: " + output.getError().getCode());
 //        Log.e(TAG, "onTakePhotoError: " + output.getError().getMessage());
     }
 
     @Override
-    public void onTakePhotoDone(CameraOutput output) {
+    public void onTakePhotoDone(PhotoRequest photoRequest, CameraOutput output) {
         String url = output.getResults().getFileUrl();
-        onPhotoTakenAll(url);
+        photoRequest.setCameraUrl(url);
+        onPhotoTakenAll(photoRequest);
         Log.i(TAG, "onTakePhotoDone: " + url);
-        mCameraConnector.requestDownloadPhotoAsBytes(url);
+        mCameraConnector.requestDownloadPhotoAsBytes(photoRequest);
     }
 
     @Override
-    public void onPhotoAsBytesDownloaded(byte[] photo) {
+    public void onPhotoAsBytesDownloaded(PhotoRequest photoRequest, byte[] photo) {
         Log.i(TAG, "onPhotoAsBytesDownloaded: Something worked!");
-        saveBytesAsImage(photo);
+        saveBytesAsImage(photoRequest, photo);
     }
 
-    private void saveBytesAsImage(byte[] bytes) {
+    private void saveBytesAsImage(PhotoRequest photoRequest, byte[] bytes) {
         Log.d(TAG, "saveBytesAsImage: HERE");
-        long instant = new Date().getTime();
-        String filename = getFilename(instant);
+//        long instant = new Date().getTime();
+        String filename = getFilename(photoRequest);
         long lengthOfFile = bytes.length;
         Log.d(TAG, "saveBytesAsImage: length of byte array: " + lengthOfFile);
         try {
@@ -157,9 +159,12 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
                 input.close();
                 File file = new File(path, filename);
                 readImageMetadata(file);
-                updateImageMetadata(file, instant);
+                updateImageMetadata(file, photoRequest);
                 readImageMetadata(new File(path, appendFilename(filename)));
-                onPhotoSavedAndProcessedAll(path + File.separator + appendFilename(filename));
+                String fullPath = path + File.separator + appendFilename(filename);
+                photoRequest.setDevicePath(fullPath);
+                onPhotoSavedAndProcessedAll(photoRequest);
+
             } else {
                 Log.e(TAG, "saveBytesAsImage: FAILED TO CREATE A DIRECTORY");
             }
@@ -219,9 +224,9 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
     }
 
 
-    private void updateImageMetadata(File file, long instant) throws ImageProcessingException, IOException, XMPException {
-        try {
-            OutputStream out = new BufferedOutputStream(new FileOutputStream(new File(file.getParent(), appendFilename(file.getName()))));
+    private void updateImageMetadata(File file, PhotoRequest photoRequest) throws ImageProcessingException, IOException, XMPException {
+        try (OutputStream out = new BufferedOutputStream(new FileOutputStream(new File(file.getParent(), appendFilename(file.getName()))))) {
+
             TiffOutputSet outputSet = new TiffOutputSet();
             final IImageMetadata imageMetadata = Imaging.getMetadata(file);
             final JpegImageMetadata metadata = (JpegImageMetadata) Imaging.getMetadata(file);
@@ -242,7 +247,7 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
 
 //                AndroidThreeTen.init(mContext);
 
-                DateTime time = new DateTime(instant);
+                DateTime time = photoRequest.getTime();
 
 //                LocalDateTime time = LocalDateTime.now();
                 String timeString = time.toString().replace("-", ":").replace("T", " ").substring(0, 19);
@@ -264,9 +269,19 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
                 exifDirectory.removeField(TiffTagConstants.TIFF_TAG_DATE_TIME);
                 exifDirectory.add(TiffTagConstants.TIFF_TAG_DATE_TIME, timeString);
 
-                // TODO: 20/07/18 Get location and sensor data and save it in EXIF as well! 
-                
-                new ExifRewriter().updateExifMetadataLossless(file, out, outputSet);
+                double longitude = photoRequest.getLocation().getLongitude();
+                double latitude = photoRequest.getLocation().getLatitude();
+//                double longitude = 10;
+//                double latitude = 20 ;
+
+                if (longitude != 0 && latitude != 0) {
+                    outputSet.setGPSInDegrees(longitude, latitude);
+
+
+                    new ExifRewriter().updateExifMetadataLossless(file, out, outputSet);
+                }
+
+                // TODO: 24/07/18 Get data from other sensors as well
 
             }
         } catch (ImageReadException | ImageWriteException e) {
@@ -275,8 +290,8 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
     }
 
     @VisibleForTesting
-    String getFilename(long instant) {
-        String date = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.LONG).format(new Date(instant));
+    String getFilename(PhotoRequest photoRequest) {
+        String date = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.LONG).format(new Date(photoRequest.getTime().toInstant().getMillis()));
         String filename = mCameraInfo.getSerialNumber() + " " + date.replace(":", "-");
         filename = filename + ".jpg";
 //        Log.d(TAG, "getFilename: DATE: " + date);
@@ -315,15 +330,15 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
         else throw new IllegalArgumentException("The observer to be deregistered isn't already registered");
     }
 
-    private void onPhotoTakenAll(String url) {
+    private void onPhotoTakenAll(PhotoRequest photoRequest) {
         for (PhotoTakerObserver observer : mObservers) {
-            observer.onPhotoTaken(url);
+            observer.onPhotoTaken(photoRequest);
         }
     }
 
-    private void onPhotoSavedAndProcessedAll(String fullPath) {
+    private void onPhotoSavedAndProcessedAll(PhotoRequest photoRequest) {
         for (PhotoTakerObserver observer : mObservers) {
-            observer.onPhotoSavedAndProcessed(fullPath);
+            observer.onPhotoSavedAndProcessed(photoRequest);
         }
     }
 
