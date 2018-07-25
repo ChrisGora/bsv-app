@@ -16,4 +16,6 @@ interface PhotoTaker {
 
     void sendTakePhotoRequest(PhotoRequest photoRequest);
 
+    void onDestroy();
+
 }

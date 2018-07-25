@@ -1,6 +1,7 @@
 package uk.ac.bris.cs.bristolstreetview;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.provider.ContactsContract;
@@ -66,7 +67,6 @@ public class AutomaticPhotoActivity extends AppCompatActivity implements PhotoTa
         mPhotoTaker = new ConcretePhotoTaker(this);
         mPhotoTaker.registerObserver(this);
 
-
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Log.e(TAG, "onCreate: LOCATION permission was not granted");
         } else {
@@ -76,6 +76,12 @@ public class AutomaticPhotoActivity extends AppCompatActivity implements PhotoTa
             });
 //            startLocationUpdates();
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mPhotoTaker.onDestroy();
     }
 
     private void findAllViews() {

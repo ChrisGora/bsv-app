@@ -1,19 +1,19 @@
 package uk.ac.bris.cs.bristolstreetview;
 
-import android.annotation.SuppressLint;
+import android.content.ComponentName;
 import android.content.Context;
-import android.location.Location;
-import android.os.Build;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Environment;
-import android.support.annotation.RequiresApi;
+import android.os.IBinder;
 import android.support.annotation.VisibleForTesting;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.adobe.xmp.XMPException;
 import com.adobe.xmp.XMPIterator;
 import com.adobe.xmp.XMPMeta;
 import com.adobe.xmp.properties.XMPPropertyInfo;
-import com.android.volley.toolbox.Volley;
 import com.drew.imaging.ImageMetadataReader;
 import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Directory;
@@ -45,9 +45,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.DateFormat;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -59,40 +57,71 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
 
     private List<PhotoTakerObserver> mObservers;
 
-    private CameraConnector mCameraConnector;
+    private CameraConnector mBoundCameraConnector;
+    private ServiceConnection mConnection;
     private CameraInfo mCameraInfo;
 
     private Context mContext;
 
     ConcretePhotoTaker(Context context) {
 
-        mContext = context;
+        mContext = Objects.requireNonNull(context, "Context was null");
 
         mObservers = new ArrayList<>();
 
-        mCameraConnector = new ConcreteCameraConnector(Volley.newRequestQueue(context), "http://192.168.1.1");
-        mCameraConnector.registerObserver(this);
-        mCameraConnector.updateCameraInfo();
+//        mBoundCameraConnector = new ConcreteCameraConnectorService("http://192.168.1.1");
+
+        mConnection = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+                mBoundCameraConnector = ((ConcreteCameraConnectorService.LocalBinder)service).getService();
+                Toast.makeText(context, R.string.local_CCC_service_connected, Toast.LENGTH_SHORT).show();
+                Log.i(TAG, "onServiceConnected: !!!!!!!!!!!!! CONNECTED");
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+                mBoundCameraConnector = null;
+                Toast.makeText(context, R.string.local_CCC_service_disconnected, Toast.LENGTH_SHORT).show();
+            }
+        };
+
+        Intent intent = new Intent(mContext, ConcreteCameraConnectorService.class);
+        mContext.startService(intent);
+        context.bindService(intent, mConnection, 0);
+
+//        Objects.requireNonNull(mBoundCameraConnector, "Bound camera connector was null");
+
+//        mBoundCameraConnector = Objects.requireNonNull(ConcreteCameraConnectorService.getInstance(), "CCC was null");
+//        mBoundCameraConnector.setUrl("http://192.168.1.1");
+//        mBoundCameraConnector.registerObserver(this);
+//        mBoundCameraConnector.updateCameraInfo();
+    }
+
+    @Override
+    public void onDestroy() {
+        mContext.unbindService(mConnection);
+        mContext.stopService(new Intent(mContext, ConcreteCameraConnectorService.class));
     }
 
     @Override
     public void updateCameraInfo() {
-        mCameraConnector.updateCameraInfo();
+        mBoundCameraConnector.updateCameraInfo();
     }
 
     @Override
     public void updateCameraState() {
-        mCameraConnector.updateCameraState();
+        mBoundCameraConnector.updateCameraState();
     }
 
     @Override
     public void setShutterVolume(int volume) {
-        mCameraConnector.setShutterVolume(volume);
+        mBoundCameraConnector.setShutterVolume(volume);
     }
 
     @Override
     public void sendTakePhotoRequest(PhotoRequest photoRequest) {
-        mCameraConnector.sendTakePhotoRequest(photoRequest);
+        mBoundCameraConnector.sendTakePhotoRequest(photoRequest);
     }
 
     @Override
@@ -134,7 +163,7 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
         photoRequest.setCameraUrl(url);
         onPhotoTakenAll(photoRequest);
         Log.i(TAG, "onTakePhotoDone: " + url);
-        mCameraConnector.requestDownloadPhotoAsBytes(photoRequest);
+        mBoundCameraConnector.requestDownloadPhotoAsBytes(photoRequest);
     }
 
     @Override

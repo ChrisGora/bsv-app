@@ -1,5 +1,6 @@
 package uk.ac.bris.cs.bristolstreetview;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -27,11 +28,18 @@ public class SinglePhotoActivity extends AppCompatActivity implements PhotoTaker
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_single_photo);
 
+
         mPhotoTaker = new ConcretePhotoTaker(this);
         mPhotoTaker.registerObserver(this);
 
         findAllViews();
         setAllOnClickListeners();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mPhotoTaker.onDestroy();
     }
 
     private void findAllViews() {

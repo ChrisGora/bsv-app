@@ -1,16 +1,29 @@
 package uk.ac.bris.cs.bristolstreetview;
 
+import android.annotation.TargetApi;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.location.Location;
+import android.os.Binder;
+import android.os.Build;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 
+import com.android.volley.toolbox.Volley;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -28,7 +41,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-class ConcreteCameraConnector extends Service implements CameraConnector {
+import static android.support.v4.app.NotificationCompat.PRIORITY_LOW;
+import static android.support.v4.app.NotificationCompat.PRIORITY_MAX;
+
+public class ConcreteCameraConnectorService extends Service implements CameraConnector {
 
     private static final String TAG = "CameraConnector";
 
@@ -42,25 +58,158 @@ class ConcreteCameraConnector extends Service implements CameraConnector {
 
     private Map<String, String> mJobStatusMap;
 
+    private NotificationManager mNM;
+    private int NOTIFICATION = R.string.local_CCC_service_started;
+
+    private final IBinder mBinder = new LocalBinder();
+
+//    private static CameraConnector instance;
 
 
-    ConcreteCameraConnector(RequestQueue queue, String url) {
+    public class LocalBinder extends Binder {
+        ConcreteCameraConnectorService getService() {
+            return ConcreteCameraConnectorService.this;
+        }
+    }
+
+//    ConcreteCameraConnectorService(String url) {
+//
+//    }
+
+
+//    static CameraConnector getInstance() {
+//        return instance;
+//    }
+
+    @Override
+    public void onCreate() {
+        Log.i(TAG, "onCreate: >>>>>>>>>>>>>>>>>>> ON CREATE");
+
+        Context context = getApplicationContext();
+        Objects.requireNonNull(context, "getApplicationContext() returned null");
+
+        mNM = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
         mObservers = new ArrayList<>();
         GsonBuilder builder = new GsonBuilder();
         mGson = builder.create();
-        mQueue = Objects.requireNonNull(queue);
+        mQueue = Objects.requireNonNull(Volley.newRequestQueue(context), "Queue was null");
         mRequestsPending = 0;
-        mUrl = Objects.requireNonNull(url);
-
+//        mUrl = Objects.requireNonNull(url);
         mJobStatusMap = new HashMap<>();
 
-        Log.v(TAG, "Queue and URL set!");
+        Log.i(TAG, "onCreate: " + ConcreteCameraConnectorService.this);
+//        instance = ConcreteCameraConnectorService.this;
+
+        Log.v(TAG, "onCreate: DONE");
+        Log.v(TAG, "Queue set!");
+
+        showNotification(context);
+
+    }
+
+
+
+    private void showNotification(Context context) {
+        // In this sample, we'll use the same text for the ticker and the expanded notification
+        CharSequence text = getText(R.string.local_CCC_service_started);
+
+        // The PendingIntent to launch our activity if the user selects this notification
+        PendingIntent contentIntent = PendingIntent.getActivity(context, 0,
+                new Intent(this, context.getClass()), 0);
+
+        // FIXME: 25/07/18 Hardwired link to the automatic photo activity - better off not having a direct reference here
+
+        // Set the info for the views that show in the notification panel.
+//        Notification notification = new Notification.Builder(context, "default")
+//                .setSmallIcon(R.drawable.googleg_standard_color_18)  // the status icon
+//                .setTicker(text)  // the status text
+//                .setWhen(System.currentTimeMillis())  // the time stamp
+//                .setContentTitle(getText(R.string.local_CCC_service_label))  // the label of the entry
+//                .setContentText(text)  // the contents of the entry
+//                .setContentIntent(contentIntent)  // The intent to send when the entry is clicked
+//                .build();
+
+        Notification notification = getNotification(context);
+        mNM.notify(NOTIFICATION, notification);
+
+        // TODO: 25/07/18 FOREGROUND
+
+//        startForeground(NOTIFICATION, notification);
+    }
+
+    public Notification getNotification(Context context) {
+        String channel;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+            channel = createChannel(context);
+        else {
+            channel = "";
+        }
+
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
+                new Intent(this, AutomaticPhotoActivity.class), 0);
+
+        CharSequence text = getText(R.string.local_CCC_service_started);
+
+        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context, channel).setSmallIcon(android.R.drawable.ic_menu_mylocation).setContentTitle("snap map fake location");
+        Notification notification = mBuilder
+                .setPriority(PRIORITY_MAX)
+                .setCategory(Notification.CATEGORY_SERVICE)
+                .setSmallIcon(R.drawable.googleg_standard_color_18)  // the status icon
+                .setTicker(text)  // the status text
+                .setWhen(System.currentTimeMillis())  // the time stamp
+                .setContentTitle(getText(R.string.local_CCC_service_label))  // the label of the entry
+                .setContentText(text)  // the contents of the entry
+                .setContentIntent(contentIntent)  // The intent to send when the entry is clicked
+                .build();
+
+
+        return notification;
+    }
+
+    @NonNull
+    @TargetApi(26)
+    private synchronized String createChannel(Context context) {
+        NotificationManager mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+        String name = "snap map fake location ";
+        int importance = NotificationManager.IMPORTANCE_LOW;
+
+        NotificationChannel mChannel = new NotificationChannel("snap map channel", name, importance);
+
+        mChannel.enableLights(true);
+        mChannel.setLightColor(Color.BLUE);
+        if (mNotificationManager != null) {
+            mNotificationManager.createNotificationChannel(mChannel);
+        } else {
+            stopSelf();
+        }
+        return "snap map channel";
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.i(TAG, "onStartCommand: >>>>>>>>>>> received start " + intent + " flags: " + flags + " id: " + startId);
+        return START_STICKY;
+    }
+
+    @Override
+    public void onDestroy() {
+//        mNM.cancel(NOTIFICATION);
+        stopForeground(true);
+        Toast.makeText(this, R.string.local_CCC_service_stopped, Toast.LENGTH_LONG).show();
+//        instance = null;
     }
 
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return mBinder;
+    }
+
+    //----------------------------------------------------------------------------------------------
+    @Override
+    public void setUrl(String url) {
+        mUrl = Objects.requireNonNull(url, "URL supplied was null");
     }
 
     @Override

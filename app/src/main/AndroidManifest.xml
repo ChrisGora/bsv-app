@@ -26,6 +26,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".AutomaticPhotoActivity"></activity>
+
+        <service android:name=".ConcreteCameraConnectorService" />
     </application>
 
 </manifest>
