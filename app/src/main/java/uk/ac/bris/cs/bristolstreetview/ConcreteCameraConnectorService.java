@@ -121,23 +121,10 @@ public class ConcreteCameraConnectorService extends Service implements CameraCon
         PendingIntent contentIntent = PendingIntent.getActivity(context, 0,
                 new Intent(this, context.getClass()), 0);
 
-        // FIXME: 25/07/18 Hardwired link to the automatic photo activity - better off not having a direct reference here
-
-        // Set the info for the views that show in the notification panel.
-//        Notification notification = new Notification.Builder(context, "default")
-//                .setSmallIcon(R.drawable.googleg_standard_color_18)  // the status icon
-//                .setTicker(text)  // the status text
-//                .setWhen(System.currentTimeMillis())  // the time stamp
-//                .setContentTitle(getText(R.string.local_CCC_service_label))  // the label of the entry
-//                .setContentText(text)  // the contents of the entry
-//                .setContentIntent(contentIntent)  // The intent to send when the entry is clicked
-//                .build();
+        // FIXME: 30/07/18 Context get seems to always return automatic photo actvity
 
         Notification notification = getNotification(context);
         mNM.notify(NOTIFICATION, notification);
-
-        // TODO: 25/07/18 FOREGROUND
-
         startForeground(NOTIFICATION, notification);
     }
 
@@ -354,6 +341,13 @@ public class ConcreteCameraConnectorService extends Service implements CameraCon
 
         Log.d(TAG, "setShutterVolume: setVolumeJsonCommand: " + setVolumeJsonCommand);
 
+        JsonObjectRequest request = getShutterVolumeRequest(setVolumeJsonCommand);
+
+        mQueue.add(Objects.requireNonNull(request));
+    }
+
+    @Nullable
+    private JsonObjectRequest getShutterVolumeRequest(String setVolumeJsonCommand) {
         String url = mUrl + "/osc/commands/execute";
         JsonObjectRequest request = null;
         try {
@@ -368,21 +362,25 @@ public class ConcreteCameraConnectorService extends Service implements CameraCon
         } catch (JSONException e) {
             Log.e(TAG, "setShutterVolume: JSON fucked up", e);
         }
-
-        mQueue.add(Objects.requireNonNull(request));
+        return request;
     }
 
     @Override
     public void requestDownloadPhotoAsBytes(PhotoRequest photoRequest) {
+        InputStreamVolleyRequest request = getDownloadRequest(photoRequest);
+        mQueue.add(Objects.requireNonNull(request));
+    }
+
+    @NonNull
+    private InputStreamVolleyRequest getDownloadRequest(PhotoRequest photoRequest) {
         String url = photoRequest.getCameraUrl();
-        InputStreamVolleyRequest request = new InputStreamVolleyRequest(Request.Method.GET, url,
+        return new InputStreamVolleyRequest(Request.Method.GET, url,
                 (response) -> {
                     Log.d(TAG, "requestDownloadPhotoAsBytes: bytes are " + Arrays.toString(response));
                     onPhotoAsBytesDownloadedAll(photoRequest, response);
                 },
                 (error) -> Log.e(TAG, "requestDownloadPhotoAsBytes: test"),
                 null);
-        mQueue.add(Objects.requireNonNull(request));
     }
 
     private void updateJobStatusMap(CameraOutput output) {

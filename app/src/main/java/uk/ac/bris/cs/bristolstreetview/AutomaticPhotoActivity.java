@@ -160,9 +160,10 @@ public class AutomaticPhotoActivity extends AppCompatActivity implements PhotoTa
     //----------------------------------------------------------------------------------------------
     //    @SuppressLint("MissingPermission")
     private void startLocationUpdates() {
+        Log.i(TAG, "startLocationUpdates: Starting location updates");
         LocationRequest locationRequest = new LocationRequest();
-        locationRequest.setInterval(500);
-        locationRequest.setFastestInterval(100);
+        locationRequest.setInterval(5000);
+        locationRequest.setFastestInterval(5000);
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
         Log.d(TAG, "startLocationUpdates: HERE >>>>>>>>>>>>>");
@@ -178,6 +179,7 @@ public class AutomaticPhotoActivity extends AppCompatActivity implements PhotoTa
                         Log.e(TAG, "onLocationResult: Location was null!");
                     } else {
                         for (Location location : locationResult.getLocations()) {
+//                            location.
                             Log.d(TAG, "onLocationResult: location: " + location);
                             onCurrentLocationUpdated(location);
                         }
@@ -197,7 +199,7 @@ public class AutomaticPhotoActivity extends AppCompatActivity implements PhotoTa
             distance = mLastPhotoLocation.distanceTo(location);
         }
         Log.i(TAG, "onCurrentLocationUpdated: Distance walked: " + distance);
-        if ((distance > 10) || isFirstPhoto) {
+        if ((distance > 20) || isFirstPhoto) {
             PhotoRequest photoRequest = new PhotoRequest();
             photoRequest.setLocation(location);
             mPhotoTaker.sendTakePhotoRequest(photoRequest);

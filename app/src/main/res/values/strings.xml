@@ -12,10 +12,11 @@
     <string name="stop_auto_time_button">STOP - time</string>
     <string name="start_auto_location_button">START - location</string>
     <string name="stop_auto_location_button">STOP - location</string>
-    
+
     <string name="local_CCC_service_connected">Camera Connector Connected</string>
     <string name="local_CCC_service_disconnected">Camera Connector Disconnected</string>
     <string name="local_CCC_service_started">Camera Connector Started</string>
     <string name="local_CCC_service_label">CCC Service</string>
     <string name="local_CCC_service_stopped">Camera Connector Stopped</string>
+    <string name="title_activity_maps">Map</string>
 </resources>

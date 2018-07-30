@@ -37,6 +37,7 @@ dependencies {
     // https://mvnrepository.com/artifact/org.apache.commons/commons-imaging
     implementation group: 'org.apache.commons', name: 'commons-imaging', version: '1.0-R1534292'
 
+    implementation 'com.google.android.gms:play-services-maps:15.0.1'
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.mockito:mockito-core:2.19.0'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
