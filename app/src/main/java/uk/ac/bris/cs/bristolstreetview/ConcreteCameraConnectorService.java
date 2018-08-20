@@ -376,7 +376,7 @@ public class ConcreteCameraConnectorService extends Service implements CameraCon
         String url = photoRequest.getCameraUrl();
         return new InputStreamVolleyRequest(Request.Method.GET, url,
                 (response) -> {
-                    Log.d(TAG, "requestDownloadPhotoAsBytes: bytes are " + Arrays.toString(response));
+//                    Log.d(TAG, "requestDownloadPhotoAsBytes: bytes are " + Arrays.toString(response));
                     onPhotoAsBytesDownloadedAll(photoRequest, response);
                 },
                 (error) -> Log.e(TAG, "requestDownloadPhotoAsBytes: test"),

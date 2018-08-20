@@ -47,7 +47,7 @@ public class ConcretePhotoTakerTest {
     @Test
     public void filenameTest() {
         ConcretePhotoTaker photoTaker = new ConcretePhotoTaker(null);
-//        System.out.println(photoTaker.getFilename(();
+//        System.out.println(photoTaker.getPhotoFilename(();
     }
 
 }

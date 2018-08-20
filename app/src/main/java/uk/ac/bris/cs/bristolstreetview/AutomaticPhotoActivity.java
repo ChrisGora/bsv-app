@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.provider.ContactsContract;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -24,6 +25,7 @@ import com.google.android.gms.location.LocationServices;
 import com.squareup.picasso.Picasso;
 
 import java.sql.Time;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -171,26 +173,38 @@ public class AutomaticPhotoActivity extends AppCompatActivity implements PhotoTa
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Log.e(TAG, "onCreate: LOCATION permission was not granted");
         } else {
-
-            mLocationCallback = new LocationCallback() {
-                @Override
-                public void onLocationResult(LocationResult locationResult) {
-                    if (locationResult == null) {
-                        Log.e(TAG, "onLocationResult: Location was null!");
-                    } else {
-                        for (Location location : locationResult.getLocations()) {
-//                            location.
-                            Log.d(TAG, "onLocationResult: location: " + location);
-                            onCurrentLocationUpdated(location);
-                        }
-                    }
-                }
-            };
+            mLocationCallback = getStandardLocationCallback();
             mFusedLocationClient.requestLocationUpdates(locationRequest, mLocationCallback, null);
         }
     }
 
-    private void onCurrentLocationUpdated(Location location) {
+    @NonNull
+    private LocationCallback getStandardLocationCallback() {
+        return new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult == null) {
+                    Log.e(TAG, "onLocationResult: Location was null!");
+                } else {
+                    for (Location location : locationResult.getLocations()) {
+//                            location.
+                        Log.d(TAG, "onLocationResult: location: " + location);
+
+                        double locationAccuracy = location.getAccuracy();
+                        double bearing = location.getBearing();
+                        double bearingAccuracy = -1;
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                            bearingAccuracy = location.getBearingAccuracyDegrees();
+                        }
+
+                        onCurrentLocationUpdated(location, locationAccuracy, bearing, bearingAccuracy);
+                    }
+                }
+            }
+        };
+    }
+
+    private void onCurrentLocationUpdated(Location location, double locationAccuracy, double bearing, double bearingAccuracy) {
         Log.d(TAG, "onCurrentLocationUpdated: Location updated");
         boolean isFirstPhoto = mLastPhotoLocation == null;
         float distance = 0;
@@ -202,6 +216,10 @@ public class AutomaticPhotoActivity extends AppCompatActivity implements PhotoTa
         if ((distance > 20) || isFirstPhoto) {
             PhotoRequest photoRequest = new PhotoRequest();
             photoRequest.setLocation(location);
+            photoRequest.setLocationAccuracy(locationAccuracy);
+            photoRequest.setBearing(bearing);
+            photoRequest.setBearingAccuracy(bearingAccuracy);
+
             mPhotoTaker.sendTakePhotoRequest(photoRequest);
             mLastPhotoLocation = location;
         }

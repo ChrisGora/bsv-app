@@ -4,8 +4,10 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.location.Location;
 import android.os.Environment;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.annotation.VisibleForTesting;
 import android.util.Log;
 import android.widget.Toast;
@@ -20,6 +22,9 @@ import com.drew.metadata.Directory;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.Tag;
 import com.drew.metadata.xmp.XmpDirectory;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.stream.JsonWriter;
 
 import org.apache.commons.imaging.ImageReadException;
 import org.apache.commons.imaging.ImageWriteException;
@@ -40,10 +45,13 @@ import org.joda.time.DateTime;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Writer;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -175,7 +183,8 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
     private void saveBytesAsImage(PhotoRequest photoRequest, byte[] bytes) {
         Log.d(TAG, "saveBytesAsImage: HERE");
 //        long instant = new Date().getTime();
-        String filename = getFilename(photoRequest);
+        String photoFilename = getPhotoFilename(photoRequest);
+        String infoFilename = addSuffix(photoFilename, "_I", "json");
         long lengthOfFile = bytes.length;
         Log.d(TAG, "saveBytesAsImage: length of byte array: " + lengthOfFile);
         try {
@@ -184,13 +193,18 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
             boolean done = path.exists() || path.mkdirs();
 
             if (done) {
-                processInputStream(input, filename, path);
+                // Image
+                processInputStream(input, photoFilename, path);
                 input.close();
-                File file = new File(path, filename);
-                readImageMetadata(file);
-                updateImageMetadata(file, photoRequest);
-                readImageMetadata(new File(path, appendFilename(filename)));
-                String fullPath = path + File.separator + appendFilename(filename);
+
+                // Metadata
+                File photoFile = new File(path, photoFilename);
+                readImageMetadata(photoFile);
+                String uuid = getUUID();
+                saveImageWithUpdatedMetadata(photoFile, photoRequest, uuid);
+                writeExtraInfoAsJson(new File(path, infoFilename), photoRequest, uuid);
+                readImageMetadata(new File(path, addSuffix(photoFilename, "_E", "jpg")));
+                String fullPath = path + File.separator + addSuffix(photoFilename, "_E", "jpg");
                 photoRequest.setDevicePath(fullPath);
                 onPhotoSavedAndProcessedAll(photoRequest);
 
@@ -203,25 +217,22 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
 
     }
 
-    private void processInputStream(InputStream input, String filename, File path) throws IOException, ImageProcessingException, XMPException {
+    private void processInputStream(InputStream input, String filename, File path) throws IOException {
         File file = new File(path, filename);
-        Log.d(TAG, "saveBytesAsImage: path " + path);
-        Log.d(TAG, "saveBytesAsImage: filename " + filename);
-        BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream(file));
-        byte data[] = new byte[1024];
+        Log.d(TAG, "processInputStream: path " + path);
+        Log.d(TAG, "processInputStream: filename " + filename);
 
-        long total = 0;
-
-        int count = input.read(data);
-
-        while (count != -1) {
-            total = total + count;
-            output.write(data, 0, count);
-            count = input.read(data);
+        try (BufferedOutputStream output = new BufferedOutputStream(new FileOutputStream(file))) {
+            byte data[] = new byte[1024];
+            long total = 0;
+            int count = input.read(data);
+            while (count != -1) {
+                total = total + count;
+                output.write(data, 0, count);
+                count = input.read(data);
+            }
+            output.flush();
         }
-
-        output.flush();
-        output.close();
     }
 
     private void readImageMetadata(File file) throws ImageProcessingException, IOException, XMPException {
@@ -253,8 +264,8 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
     }
 
 
-    private void updateImageMetadata(File file, PhotoRequest photoRequest) throws ImageProcessingException, IOException, XMPException {
-        try (OutputStream out = new BufferedOutputStream(new FileOutputStream(new File(file.getParent(), appendFilename(file.getName()))))) {
+    private void saveImageWithUpdatedMetadata(File file, PhotoRequest photoRequest, String uuidString) throws ImageProcessingException, IOException, XMPException {
+        try (OutputStream out = new BufferedOutputStream(new FileOutputStream(new File(file.getParent(), addSuffix(file.getName(), "_E", "jpg"))))) {
 
             TiffOutputSet outputSet = new TiffOutputSet();
             final IImageMetadata imageMetadata = Imaging.getMetadata(file);
@@ -280,11 +291,8 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
 
 //                LocalDateTime time = LocalDateTime.now();
                 String timeString = time.toString().replace("-", ":").replace("T", " ").substring(0, 19);
-                Log.d(TAG, "updateImageMetadata: TIMESTRING: " + timeString);
-
-                UUID uuid = UUID.randomUUID();
-                String uuidString = uuid.toString().replace("-", "");
-                Log.d(TAG, "updateImageMetadata: uuid: " + uuidString);
+                Log.d(TAG, "saveImageWithUpdatedMetadata: TIMESTRING: " + timeString);
+                Log.d(TAG, "saveImageWithUpdatedMetadata: uuid: " + uuidString);
 
                 exifDirectory.removeField(ExifTagConstants.EXIF_TAG_IMAGE_UNIQUE_ID);
                 exifDirectory.add(ExifTagConstants.EXIF_TAG_IMAGE_UNIQUE_ID, uuidString);
@@ -298,17 +306,19 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
                 exifDirectory.removeField(TiffTagConstants.TIFF_TAG_DATE_TIME);
                 exifDirectory.add(TiffTagConstants.TIFF_TAG_DATE_TIME, timeString);
 
-                double longitude = photoRequest.getLocation().getLongitude();
-                double latitude = photoRequest.getLocation().getLatitude();
-//                double longitude = 10;
-//                double latitude = 20 ;
 
-                if (longitude != 0 && latitude != 0) {
-                    outputSet.setGPSInDegrees(longitude, latitude);
+                Location location = photoRequest.getLocation();
 
+                if (location != null) {
+                    double longitude = photoRequest.getLocation().getLongitude();
+                    double latitude = photoRequest.getLocation().getLatitude();
 
-                    new ExifRewriter().updateExifMetadataLossless(file, out, outputSet);
+                    if (longitude != 0 && latitude != 0) {
+                        outputSet.setGPSInDegrees(longitude, latitude);
+                    }
                 }
+
+                new ExifRewriter().updateExifMetadataLossless(file, out, outputSet);
 
                 // TODO: 24/07/18 Get data from other sensors as well
 
@@ -318,20 +328,65 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
         }
     }
 
+    private String getUUID() {
+        UUID uuid = UUID.randomUUID();
+        return uuid.toString().replace("-", "");
+    }
+
+    private void writeExtraInfoAsJson(File file, PhotoRequest photoRequest, String uuidString) throws IOException {
+        ExtraPhotoInfo info = getInfo(photoRequest, uuidString);
+        Gson gson = new Gson();
+//        Writer writer = new FileWriter(file);
+//        gson.toJson(info, writer);
+
+        System.out.println("EXTRA INFO: " + info);
+        System.out.println("EXTRA INFO ID: " + info.getId());
+
+        String json = gson.toJson(info);
+        System.out.println(">>>>>>>>>>> JSON: " + json);
+
+        try (InputStream input = new ByteArrayInputStream(json.getBytes())) {
+            processInputStream(input, file.getName(), file.getParentFile());
+        }
+    }
+
+    @NonNull
+    private ExtraPhotoInfo getInfo(PhotoRequest request, String uuidString) {
+        ExtraPhotoInfo info = new ExtraPhotoInfo();
+
+        Objects.requireNonNull(uuidString, "Image ID was null");
+        info.setId(uuidString);
+
+        double locationAccuracy = request.getLocationAccuracy();
+        if (isPresent(locationAccuracy)) info.setLocationAccuracy(locationAccuracy);
+
+        double bearing = request.getBearing();
+        if (isPresent(bearing)) info.setBearing(bearing);
+
+        double bearingAccuracy = request.getBearingAccuracy();
+        if (isPresent(bearingAccuracy)) info.setBearingAccuracy(bearingAccuracy);
+
+        return info;
+    }
+
+    boolean isPresent(double value) {
+        return value != -1;
+    }
+
     @VisibleForTesting
-    String getFilename(PhotoRequest photoRequest) {
+    String getPhotoFilename(PhotoRequest photoRequest) {
         String date = DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.LONG).format(new Date(photoRequest.getTime().toInstant().getMillis()));
         String filename = mCameraInfo.getSerialNumber() + " " + date.replace(":", "-");
         filename = filename + ".jpg";
-//        Log.d(TAG, "getFilename: DATE: " + date);
-        Log.d(TAG, "getFilename: FILENAME: " + filename);
+//        Log.d(TAG, "getPhotoFilename: DATE: " + date);
+        Log.d(TAG, "getPhotoFilename: FILENAME: " + filename);
         return filename;
     }
 
-    private String appendFilename(String filename) {
-        String newFilename = filename.replace(".jpg", "_E.jpg");
-        Log.d(TAG, "appendFilename: OLD: " + filename);
-        Log.d(TAG, "appendFilename: NEW: " + newFilename);
+    private String addSuffix(String filename, String suffix, String extension) {
+        String newFilename = filename.replace(".jpg", suffix + "." + extension);
+        Log.d(TAG, "addSuffix: OLD: " + filename);
+        Log.d(TAG, "addSuffix: NEW: " + newFilename);
         return newFilename;
     }
 
