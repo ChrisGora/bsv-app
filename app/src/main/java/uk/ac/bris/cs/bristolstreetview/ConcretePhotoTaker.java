@@ -199,11 +199,11 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
 
                 // Metadata
                 File photoFile = new File(path, photoFilename);
-                readImageMetadata(photoFile);
+//                readImageMetadata(photoFile);
                 String uuid = getUUID();
                 saveImageWithUpdatedMetadata(photoFile, photoRequest, uuid);
                 writeExtraInfoAsJson(new File(path, infoFilename), photoRequest, uuid);
-                readImageMetadata(new File(path, addSuffix(photoFilename, "_E", "jpg")));
+//                readImageMetadata(new File(path, addSuffix(photoFilename, "_E", "jpg")));
                 String fullPath = path + File.separator + addSuffix(photoFilename, "_E", "jpg");
                 photoRequest.setDevicePath(fullPath);
                 onPhotoSavedAndProcessedAll(photoRequest);

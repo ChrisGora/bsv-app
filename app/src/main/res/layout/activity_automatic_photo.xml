@@ -19,7 +19,8 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/stop_auto_time_button" />
+        app:layout_constraintTop_toBottomOf="@+id/stop_auto_time_button"
+        app:layout_constraintVertical_bias="0.964" />
 
     <Button
         android:id="@+id/start_auto_location_button"
@@ -67,7 +68,7 @@
         app:layout_constraintTop_toBottomOf="@+id/start_auto_time_button" />
 
     <EditText
-        android:id="@+id/IntervalEditText"
+        android:id="@+id/interval_edittext"
         android:layout_width="90dp"
         android:layout_height="43dp"
         android:layout_marginEnd="8dp"
@@ -79,4 +80,26 @@
         app:layout_constraintEnd_toStartOf="@+id/start_auto_time_button"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <android.support.v4.widget.NestedScrollView
+        android:layout_width="273dp"
+        android:layout_height="213dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toTopOf="@+id/auto_response_image_view"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/stop_auto_time_button">
+
+        <LinearLayout
+            android:id="@+id/log_linear_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical" />
+
+    </android.support.v4.widget.NestedScrollView>
+
 </android.support.constraint.ConstraintLayout>

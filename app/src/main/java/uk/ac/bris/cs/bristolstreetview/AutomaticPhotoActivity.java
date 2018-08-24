@@ -1,10 +1,8 @@
 package uk.ac.bris.cs.bristolstreetview;
 
 import android.Manifest;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.provider.ContactsContract;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -16,6 +14,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -24,9 +24,6 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.squareup.picasso.Picasso;
 
-import java.sql.Time;
-import java.util.Optional;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -43,6 +40,8 @@ public class AutomaticPhotoActivity extends AppCompatActivity implements PhotoTa
     private EditText mTimeIntervalField;
     private ImageView mResponseImageView;
 
+    private LinearLayout mLog;
+    private TextView[] textviews = new TextView[2];
 
     private Location mLastPhotoLocation;
 
@@ -63,6 +62,7 @@ public class AutomaticPhotoActivity extends AppCompatActivity implements PhotoTa
 
         findAllViews();
         setAllOnClickListeners();
+        setUpLinearLayoutLog();
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
@@ -71,9 +71,11 @@ public class AutomaticPhotoActivity extends AppCompatActivity implements PhotoTa
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Log.e(TAG, "onCreate: LOCATION permission was not granted");
+            logDistance(TAG, "onCreate: LOCATION permission was not granted");
         } else {
             mFusedLocationClient.getLastLocation().addOnSuccessListener((location) -> {
                 Log.d(TAG, "Location: " + location);
+//                logDistance(TAG, "Location: " + location);
                 mLastPhotoLocation = location;
             });
 //            startLocationUpdates();
@@ -92,8 +94,11 @@ public class AutomaticPhotoActivity extends AppCompatActivity implements PhotoTa
         mStartTimeButton = findViewById(R.id.start_auto_time_button);
         mStopTimeButton = findViewById(R.id.stop_auto_time_button);
 
-        mTimeIntervalField = findViewById(R.id.IntervalEditText);
+        mTimeIntervalField = findViewById(R.id.interval_edittext);
         mResponseImageView = findViewById(R.id.auto_response_image_view);
+
+        mLog = findViewById(R.id.log_linear_layout);
+
     }
 
     private void setAllOnClickListeners() {
@@ -140,6 +145,7 @@ public class AutomaticPhotoActivity extends AppCompatActivity implements PhotoTa
 //        });
         mFusedLocationClient.removeLocationUpdates(mLocationCallback);
         Log.d(TAG, "stopLocationPhotoTaking: Stop signal sent");
+        logDistance(TAG, "stopLocationPhotoTaking: Stop signal sent");
     }
 
     private void startTimePhotoTaking(View view) {
@@ -154,8 +160,10 @@ public class AutomaticPhotoActivity extends AppCompatActivity implements PhotoTa
 
     private void stopTimePhotoTaking(View view) {
         Log.d(TAG, "stopTimePhotoTaking: Stopping");
+        logDistance(TAG, "stopTimePhotoTaking: Stopping");
         mScheduledExecutorService.shutdownNow();
         Log.d(TAG, "stopTimePhotoTaking: Stop singnal sent");
+        logDistance(TAG, "stopTimePhotoTaking: Stop singnal sent");
     }
 
 
@@ -163,6 +171,7 @@ public class AutomaticPhotoActivity extends AppCompatActivity implements PhotoTa
     //    @SuppressLint("MissingPermission")
     private void startLocationUpdates() {
         Log.i(TAG, "startLocationUpdates: Starting location updates");
+        logDistance(TAG, "startLocationUpdates: Starting location updates");
         LocationRequest locationRequest = new LocationRequest();
         locationRequest.setInterval(5000);
         locationRequest.setFastestInterval(5000);
@@ -172,6 +181,7 @@ public class AutomaticPhotoActivity extends AppCompatActivity implements PhotoTa
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Log.e(TAG, "onCreate: LOCATION permission was not granted");
+            logDistance(TAG, "onCreate: LOCATION permission was not granted");
         } else {
             mLocationCallback = getStandardLocationCallback();
             mFusedLocationClient.requestLocationUpdates(locationRequest, mLocationCallback, null);
@@ -185,10 +195,12 @@ public class AutomaticPhotoActivity extends AppCompatActivity implements PhotoTa
             public void onLocationResult(LocationResult locationResult) {
                 if (locationResult == null) {
                     Log.e(TAG, "onLocationResult: Location was null!");
+                    logDistance(TAG, "onLocationResult: Location was null!");
                 } else {
                     for (Location location : locationResult.getLocations()) {
 //                            location.
                         Log.d(TAG, "onLocationResult: location: " + location);
+//                        logDistance(TAG, "onLocationResult: location: " + location);
 
                         double locationAccuracy = location.getAccuracy();
                         double bearing = location.getBearing();
@@ -206,6 +218,7 @@ public class AutomaticPhotoActivity extends AppCompatActivity implements PhotoTa
 
     private void onCurrentLocationUpdated(Location location, double locationAccuracy, double bearing, double bearingAccuracy) {
         Log.d(TAG, "onCurrentLocationUpdated: Location updated");
+//        logDistance(TAG, "onCurrentLocationUpdated: Location updated");
         boolean isFirstPhoto = mLastPhotoLocation == null;
         float distance = 0;
         if (!isFirstPhoto) {
@@ -213,6 +226,7 @@ public class AutomaticPhotoActivity extends AppCompatActivity implements PhotoTa
             distance = mLastPhotoLocation.distanceTo(location);
         }
         Log.i(TAG, "onCurrentLocationUpdated: Distance walked: " + distance);
+        logDistance(TAG, "Distance walked: " + distance);
         if ((distance > 20) || isFirstPhoto) {
             PhotoRequest photoRequest = new PhotoRequest();
             photoRequest.setLocation(location);
@@ -228,7 +242,7 @@ public class AutomaticPhotoActivity extends AppCompatActivity implements PhotoTa
     @Override
     public void onPhotoTaken(PhotoRequest photoRequest) {
         Log.d(TAG, "onPhotoTaken: Got a url...");
-        displayImage(photoRequest.getCameraUrl());
+//        displayImage(photoRequest.getCameraUrl());
     }
 
     private void displayImage(String url) {
@@ -242,5 +256,26 @@ public class AutomaticPhotoActivity extends AppCompatActivity implements PhotoTa
     @Override
     public void onPhotoSavedAndProcessed(PhotoRequest photoRequest) {
         Log.i(TAG, "onPhotoSavedAndProcessed: DONE!!! " + photoRequest.getDevicePath());
+        logLastPhoto(TAG, "NEW PHOTO DONE!!! " + photoRequest.getDevicePath());
+
+    }
+
+    private void setUpLinearLayoutLog() {
+        int i = 0;
+//        setContentView(mLog);
+        while (i < textviews.length) {
+            textviews[i] = new TextView(this);
+//            textviews[i].setText("test " + i);
+            mLog.addView(textviews[i]);
+            i++;
+        }
+    }
+
+    private void logDistance(String tag, String message) {
+        textviews[0].setText(message);
+    }
+
+    private void logLastPhoto(String Tag, String message) {
+        textviews[1].setText(message);
     }
 }
