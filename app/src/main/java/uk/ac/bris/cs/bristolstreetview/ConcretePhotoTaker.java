@@ -421,6 +421,7 @@ public class ConcretePhotoTaker implements CameraConnectorObserver, PhotoTaker {
     }
 
     private void onPhotoSavedAndProcessedAll(PhotoRequest photoRequest) {
+        mBoundCameraConnector.deleteAll();
         for (PhotoTakerObserver observer : mObservers) {
             observer.onPhotoSavedAndProcessed(photoRequest);
         }

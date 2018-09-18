@@ -266,6 +266,34 @@ public class ConcreteCameraConnectorService extends Service implements CameraCon
         mQueue.add(Objects.requireNonNull(request, "Request was null"));
     }
 
+    @Override
+    public void deleteAll() {
+        CameraCommand deleteCommand = new CameraCommand();
+        deleteCommand.setName("camera.delete");
+        deleteCommand.setParameters(new Parameters());
+        deleteCommand.getParameters().setFileUrls(new String[]{"all"});
+
+        String deleteJsonCommand = mGson.toJson(deleteCommand);
+
+        Log.d(TAG, "delete All: " + deleteJsonCommand);
+
+        String url = mUrl + "/osc/commands/execute";
+        JsonObjectRequest request = null;
+        try {
+            request = new JsonObjectRequest(Request.Method.POST, url, new JSONObject(deleteJsonCommand),
+                    (response) -> {
+                        Log.d(TAG, "Delete All: " + response.toString());
+                    },
+                    (error) -> {
+                        Log.e(TAG, "Delete All: FUCKED UP", error);
+                    });
+        } catch (JSONException e) {
+            Log.e(TAG, "delete All: JSON fucked up", e);
+        }
+
+        mQueue.add(Objects.requireNonNull(request, "Request was null"));
+    }
+
     private void checkStatus(PhotoRequest photoRequest, String id) {
 
         Log.d(TAG, "checkStatus: >>>>>>>>>>>>>>>>>>>>>>>>> HERE");
