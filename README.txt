@@ -4,16 +4,27 @@ BRISTOL STREET VIEW APP
 INSTALLING THE APK
 // ---------------------------------------------------------------------------------------------------------------------
 
-1) Build the apk
+1) Simply copy the apk to the device and install it.
+   Make sure installing unsigned apks is allowed in developer's settings.
+
+
+
+
+2) If you want to build the apk yourself, Android SDK must be installed.
+    This can be done using Android Studio.
+
+    Gradle will look for the file 'local.properties' in the main project directory.
+    This file must contain the line:
+
+sdk.dir=[PATH TO YOUR ANDROID SDK]
+
+Then execute:
 
         ./gradlew assemble
 
     The generated apk will be in
 
         bristolstreetview/app/build/outputs/apk/release/app-release-unsigned.apk
-
-2) Copy the apk to the device and install it.
-   Make sure installing unsigned apks is allowed in developer's settings.
 
 
 // ---------------------------------------------------------------------------------------------------------------------
