@@ -24,4 +24,6 @@ interface CameraConnector {
 
     void requestDownloadPhotoAsBytes(PhotoRequest photoRequest);
 
+    void deleteAll();
+
 }

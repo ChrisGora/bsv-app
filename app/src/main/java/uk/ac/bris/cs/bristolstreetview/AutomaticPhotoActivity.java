@@ -173,8 +173,8 @@ public class AutomaticPhotoActivity extends AppCompatActivity implements PhotoTa
         Log.i(TAG, "startLocationUpdates: Starting location updates");
         logDistance(TAG, "startLocationUpdates: Starting location updates");
         LocationRequest locationRequest = new LocationRequest();
-        locationRequest.setInterval(5000);
-        locationRequest.setFastestInterval(5000);
+        locationRequest.setInterval(3000);
+        locationRequest.setFastestInterval(3000);
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
         Log.d(TAG, "startLocationUpdates: HERE >>>>>>>>>>>>>");
@@ -227,7 +227,7 @@ public class AutomaticPhotoActivity extends AppCompatActivity implements PhotoTa
         }
         Log.i(TAG, "onCurrentLocationUpdated: Distance walked: " + distance);
         logDistance(TAG, "Distance walked: " + distance);
-        if ((distance > 20) || isFirstPhoto) {
+        if ((distance >= 15) || isFirstPhoto) {
             PhotoRequest photoRequest = new PhotoRequest();
             photoRequest.setLocation(location);
             photoRequest.setLocationAccuracy(locationAccuracy);
@@ -257,7 +257,6 @@ public class AutomaticPhotoActivity extends AppCompatActivity implements PhotoTa
     public void onPhotoSavedAndProcessed(PhotoRequest photoRequest) {
         Log.i(TAG, "onPhotoSavedAndProcessed: DONE!!! " + photoRequest.getDevicePath());
         logLastPhoto(TAG, "NEW PHOTO DONE!!! " + photoRequest.getDevicePath());
-
     }
 
     private void setUpLinearLayoutLog() {

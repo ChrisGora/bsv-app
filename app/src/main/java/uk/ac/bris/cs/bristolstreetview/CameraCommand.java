@@ -35,6 +35,7 @@ public class CameraCommand {
 class Parameters {
 
     private Options options;
+    private String[] fileUrls;
 
     public Options getOptions() {
         return options;
@@ -43,12 +44,21 @@ class Parameters {
     public void setOptions(Options options) {
         this.options = options;
     }
+
+    public String[] getFileUrls() {
+        return fileUrls;
+    }
+
+    public void setFileUrls(String[] fileUrls) {
+        this.fileUrls = fileUrls;
+    }
 }
 
 
 class Options {
 
     private int _shutterVolume;
+
 
     public int get_shutterVolume() {
         return _shutterVolume;
@@ -57,4 +67,5 @@ class Options {
     public void set_shutterVolume(int _shutterVolume) {
         this._shutterVolume = _shutterVolume;
     }
+
 }
