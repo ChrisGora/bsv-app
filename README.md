@@ -1,10 +1,12 @@
 # BRISTOL STREET VIEW APP
 
-This app is part of my Summer 2018 Internship at the University of Bristol's Visual Information Lab.
+[READ THE PROJECT SUMMARY!](https://bitbucket.org/kg17815/bristolstreetview/src/master/Bristol%20Street%20View%20PROJECT%20SUMMARY.pdf)
 
-The main aim of the project was to create a platform to collect and store 1000s of 360 degree images of Bristol.
+This is the first part of work that I did for my Summer 2018 Internship at the University of Bristol's Visual Information Lab. The main aim of the project was to create a platform to collect and store 1000s of 360 degree images of Bristol.
 
-This app is the first part of the project. It connects to the 360 camera and takes a picture every 20 meters. The photos and the metadata are both stored on the phone to be processed by a computer after the trip.
+The repository contains an Android app, which connects to a 360 camera and takes a picture every 20 meters. The photos and the metadata are both stored on the phone to be processed by a computer after the trip.
+
+For the second part of the project, have a look at the" Bristol Street View Desktop Client" repo.
 
 ## INSTALLING THE APK
 
