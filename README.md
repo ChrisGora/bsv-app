@@ -1,8 +1,12 @@
 # BRISTOL STREET VIEW APP
 
-// ---------------------------------------------------------------------------------------------------------------------
+This app is part of my Summer 2018 Internship at the University of Bristol's Visual Information Lab.
+
+The main aim of the project was to create a platform to collect and store 1000s of 360 degree images of Bristol.
+
+This app is the first part of the project. It connects to the 360 camera and takes a picture every 20 meters. The photos and the metadata are both stored on the phone to be processed by a computer after the trip.
+
 ## INSTALLING THE APK
-// ---------------------------------------------------------------------------------------------------------------------
 
 1) Simply copy the apk to the device and install it.
    Make sure installing untrusted apks is allowed in developer's settings.
@@ -24,9 +28,7 @@ Then execute:
         `bristolstreetview/app/build/outputs/apk/release/app-release-unsigned.apk`
 
 
-// ---------------------------------------------------------------------------------------------------------------------
 ## COLLECTING DATA
-// ---------------------------------------------------------------------------------------------------------------------
 
 1. Connect the camera to the phone via WiFi
         https://theta360.com/uk/support/manual/v/content/prepare/prepare_06.html
@@ -39,10 +41,7 @@ Then execute:
 
 5. Keep an eye on distance walked since last photo and the exact time when the last photo was saved.
 
-
-// ---------------------------------------------------------------------------------------------------------------------
 ## TROUBLESHOOTING
-// ---------------------------------------------------------------------------------------------------------------------
 
     1) Make sure the both the camera and the WiFi indicator are ON (if flashing the camera has disconnected)
     2) STOP LOCATION, wait a few seconds, then START LOCATION again.
